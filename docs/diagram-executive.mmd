@@ -1,0 +1,37 @@
+flowchart LR
+    subgraph Input["  "]
+        User(("Developer\nSubmits Goal"))
+    end
+
+    subgraph Engine["SDLC Orchestrator — Azure Cloud"]
+        direction TB
+        Plan["AI Plans\nthe Work"]
+        Team["AI Team\nWrites Code"]
+        Review["AI Reviewer\nChecks Quality"]
+        Ship["Delivers\nPull Request"]
+        Plan --> Team --> Review --> Ship
+    end
+
+    subgraph Output["  "]
+        GH(("GitHub\nCode Repository"))
+    end
+
+    User -->|"Describe what\nyou want built"| Plan
+    Ship -->|"Ready for\nhuman approval"| GH
+    GH -->|"Human comments\ntrigger revisions"| Review
+
+    style Input fill:none,stroke:none
+    style Output fill:none,stroke:none
+    style Engine fill:#1a1a2e,stroke:#e94560,stroke-width:2px,color:#eee
+    style Plan fill:#0f3460,stroke:#533483,color:#eee,stroke-width:2px
+    style Team fill:#0f3460,stroke:#533483,color:#eee,stroke-width:2px
+    style Review fill:#0f3460,stroke:#533483,color:#eee,stroke-width:2px
+    style Ship fill:#0f3460,stroke:#533483,color:#eee,stroke-width:2px
+    style User fill:#e94560,stroke:#e94560,color:#fff
+    style GH fill:#e94560,stroke:#e94560,color:#fff
+
+    linkStyle 0 stroke:#e94560,stroke-width:2px
+    linkStyle 1 stroke:#533483,stroke-width:2px
+    linkStyle 2 stroke:#533483,stroke-width:2px
+    linkStyle 3 stroke:#e94560,stroke-width:2px
+    linkStyle 4 stroke:#533483,stroke-width:2px

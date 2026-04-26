@@ -1,0 +1,608 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "additionalRulesParagraph": {
+      "additionalProperties": false,
+      "description": "Represents one paragraph for fare rules in textual format",
+      "goType": "RailAdditionalRulesParagraph",
+      "properties": {
+        "language": {
+          "dataClassification": [],
+          "description": "Language designator according to BCP 47",
+          "type": "string"
+        },
+        "title": {
+          "dataClassification": [],
+          "description": "Title for this paragraph",
+          "type": "string"
+        },
+        "value": {
+          "dataClassification": [],
+          "description": "Localized content of this paragraph",
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.AdditionalRulesParagraph"
+    },
+    "additionalRulesText": {
+      "additionalProperties": false,
+      "goType": "RailAdditionalRulesText",
+      "properties": {
+        "paragraphs": {
+          "dataClassification": [],
+          "items": {
+            "$ref": "#/definitions/additionalRulesParagraph"
+          },
+          "type": "array"
+        },
+        "url": {
+          "dataClassification": [],
+          "description": "a url to the original source of the fare rules",
+          "type": "string"
+        }
+      },
+      "required": [
+        "paragraphs"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.AdditionalRulesText"
+    },
+    "cancellationRulesItem": {
+      "additionalProperties": false,
+      "goType": "RailCancellationRulesItem",
+      "properties": {
+        "expiration": {
+          "$ref": "shared.json#/definitions/date-time",
+          "dataClassification": [],
+          "description": "a point in time until which this particular rule applies (UTC). Null means the rule applies without a limit."
+        },
+        "penalty": {
+          "$ref": "#/definitions/penalty",
+          "dataClassification": [],
+          "description": "A penalty that applies to this particular rule"
+        },
+        "type": {
+          "dataClassification": [],
+          "description": "Type of the rule specifying whether exchange is allowed or forbidden before the specified expiration",
+          "enum": [
+            "ALLOWED",
+            "FORBIDDEN"
+          ],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "voucher": {
+          "dataClassification": [],
+          "description": "specifies whether a refund is returned in the form of a voucher for future travel",
+          "enum": [
+            "MANDATORY",
+            "OPTIONAL",
+            "NONE"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.CancellationRulesItem"
+    },
+    "coach": {
+      "description": "type of coach - compartments, couchettes, etc",
+      "enum": [
+        "COMPARTMENT",
+        "SLEEPER"
+      ],
+      "goType": "RailCoach",
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.rail.Coach"
+    },
+    "deck": {
+      "description": "upper, lower etc.",
+      "enum": [
+        "UPPER",
+        "LOWER"
+      ],
+      "goType": "RailDeck",
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.rail.Deck"
+    },
+    "exchangeRulesItem": {
+      "additionalProperties": false,
+      "goType": "RailExchangeRulesItem",
+      "properties": {
+        "expiration": {
+          "$ref": "shared.json#/definitions/date-time",
+          "dataClassification": [],
+          "description": "a point in time until which this particular rule applies (UTC). Null means the rule applies without a limit."
+        },
+        "penalty": {
+          "$ref": "#/definitions/penalty",
+          "dataClassification": [],
+          "description": "A penalty that applies to this particular rule"
+        },
+        "type": {
+          "dataClassification": [],
+          "description": "Type of the rule specifying whether exchange is allowed or forbidden before the specified expiration",
+          "enum": [
+            "ALLOWED",
+            "FORBIDDEN"
+          ],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.ExchangeRulesItem"
+    },
+    "fareRule": {
+      "additionalProperties": false,
+      "goType": "RailFareRule",
+      "properties": {
+        "additionalRules": {
+          "$ref": "#/definitions/additionalRulesText",
+          "dataClassification": [],
+          "description": "Fare rules in a textual format. This is used either in addition or instead of the structured cancellation and exchange rules."
+        },
+        "cancellationRules": {
+          "dataClassification": [],
+          "description": "List of rules relating to cancellation of the fare. To be evaluated as ordered by expiration.",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/cancellationRulesItem"
+          },
+          "type": "array"
+        },
+        "exchangeRules": {
+          "dataClassification": [],
+          "description": "List of rules relating to exchangeability of the fare. To be evaluated as ordered by expiration.",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/exchangeRulesItem"
+          },
+          "type": "array"
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "id of the fare rule, used as a reference by fare to match the rule",
+          "groups": [
+            "external"
+          ]
+        },
+        "permittedDestinations": {
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/railStation"
+          },
+          "type": "array"
+        },
+        "permittedOrigins": {
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/railStation"
+          },
+          "type": "array"
+        },
+        "regulationLinks": {
+          "dataClassification": [],
+          "description": "List of regulations relating to regulationType and url",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/regulationLink"
+          },
+          "type": "array"
+        },
+        "routeRestriction": {
+          "$ref": "#/definitions/routeRestriction",
+          "dataClassification": [],
+          "description": "Restrictions on the routes that this fare may be used on."
+        },
+        "seating": {
+          "dataClassification": [],
+          "description": "SEATMAP: Seat selection is available free of charge. SEAT_PAID: Only paid seat selection is available. PREFERENCES: Only seat preferences may be specified. NONE: All seating options are unavailable.",
+          "enum": [
+            "SEATMAP",
+            "SEAT_PAID",
+            "PREFERENCES",
+            "NONE"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "cancellationRules",
+        "exchangeRules",
+        "id",
+        "permittedDestinations",
+        "permittedOrigins",
+        "regulationLinks"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.FareRule"
+    },
+    "feeAmountCurrency": {
+      "additionalProperties": false,
+      "goType": "RailFeeAmountCurrency",
+      "properties": {
+        "amount": {
+          "dataClassification": [],
+          "description": "Amount as string 123.45 with point as comma separator",
+          "type": "string"
+        },
+        "currency": {
+          "$ref": "shared.json#/definitions/currency",
+          "dataClassification": []
+        }
+      },
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.FeeAmountCurrency"
+    },
+    "penalty": {
+      "additionalProperties": false,
+      "goType": "RailPenalty",
+      "properties": {
+        "currency": {
+          "dataClassification": [],
+          "description": "Currency ISO code",
+          "type": "string"
+        },
+        "type": {
+          "dataClassification": [],
+          "enum": [
+            "PERCENTAGE",
+            "CURRENCY"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "dataClassification": [],
+          "description": "the size of the penalty, in percents or specified currency (based on type)",
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.Penalty"
+    },
+    "railServiceClass": {
+      "dataClassification": [],
+      "description": "Our unified representation of rail class of service",
+      "enum": [
+        "FIRST",
+        "SECOND",
+        "BUSINESS"
+      ],
+      "goType": "RailServiceClass",
+      "groups": [
+        "external"
+      ],
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.rail.ServiceClass"
+    },
+    "railStation": {
+      "additionalProperties": false,
+      "description": "Rail station",
+      "goType": "RailStation",
+      "properties": {
+        "city": {
+          "dataClassification": [],
+          "description": "City the rail station is located in",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "country": {
+          "dataClassification": [],
+          "description": "Country the rail station is located in",
+          "type": "string"
+        },
+        "countryCode": {
+          "dataClassification": [],
+          "description": "Country code of the rail station, eg. 'ES' (using ISO 3166-1 alpha-2 standard)",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "id": {
+          "dataClassification": [],
+          "description": "Reference to places store or Omnisearch",
+          "type": "string"
+        },
+        "latitude": {
+          "dataClassification": [],
+          "description": "Latitude of the rail station",
+          "type": "number"
+        },
+        "longitude": {
+          "dataClassification": [],
+          "description": "Longitude of the rail station",
+          "type": "number"
+        },
+        "name": {
+          "dataClassification": [],
+          "description": "Name of the rail station",
+          "groups": [
+            "search",
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "supplierCode": {
+          "dataClassification": [],
+          "description": "The station code used by the supplier",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "timezone": {
+          "dataClassification": [],
+          "description": "Timezone the rail station is located in",
+          "type": "string"
+        }
+      },
+      "required": [
+        "countryCode",
+        "name",
+        "supplierCode"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.Station"
+    },
+    "regulationLink": {
+      "additionalProperties": false,
+      "goType": "RailRegulationLink",
+      "properties": {
+        "carrierName": {
+          "dataClassification": [],
+          "description": "Carrier name used in regulation link",
+          "type": "string"
+        },
+        "type": {
+          "dataClassification": [],
+          "enum": [
+            "PASSENGER_RIGHTS_REGULATION",
+            "NATIONAL_RAIL_CONDITIONS",
+            "AMTRAK_TERMS_AND_CONDITIONS",
+            "CARRIER_TERMS_AND_CONDITIONS"
+          ],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "url": {
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "url"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.RegulationLink"
+    },
+    "routeRestriction": {
+      "additionalProperties": false,
+      "goType": "RailRouteRestriction",
+      "properties": {
+        "supplierCode": {
+          "dataClassification": [],
+          "description": "Identifier of the routeRestriction used in external system",
+          "type": "string"
+        },
+        "text": {
+          "$ref": "shared.json#/definitions/localizedString",
+          "dataClassification": [],
+          "description": "Store routeRestriction text in a particular language"
+        }
+      },
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.RouteRestriction"
+    },
+    "seatDirection": {
+      "description": "forward or back facing seat",
+      "enum": [
+        "FORWARD",
+        "BACK"
+      ],
+      "goType": "RailSeatDirection",
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.rail.SeatDirection"
+    },
+    "seatPosition": {
+      "description": "hall, table etc.",
+      "enum": [
+        "AISLE",
+        "WINDOW",
+        "ISOLATED_WINDOW",
+        "MIDDLE"
+      ],
+      "goType": "RailSeatPosition",
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.rail.SeatPosition"
+    },
+    "seatPreference": {
+      "additionalProperties": false,
+      "description": "Describe seat preferences",
+      "goType": "RailSeatPreference",
+      "properties": {
+        "coach": {
+          "$ref": "#/definitions/coach",
+          "dataClassification": []
+        },
+        "deck": {
+          "$ref": "#/definitions/deck",
+          "dataClassification": []
+        },
+        "direction": {
+          "$ref": "#/definitions/seatDirection",
+          "dataClassification": []
+        },
+        "position": {
+          "$ref": "#/definitions/seatPosition",
+          "dataClassification": []
+        },
+        "type": {
+          "$ref": "#/definitions/seatType",
+          "dataClassification": []
+        }
+      },
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.SeatPreference"
+    },
+    "seatSelection": {
+      "additionalProperties": false,
+      "description": "Describe specific seat selection done using seat map data",
+      "goType": "RailSeatSelection",
+      "properties": {
+        "carriageNumber": {
+          "dataClassification": [],
+          "description": "Designation of carriage within a train",
+          "type": "string"
+        },
+        "seatNumber": {
+          "dataClassification": [],
+          "description": "Designation of seat within a carriage",
+          "type": "string"
+        },
+        "segmentId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "Reference to the segment to which the seat reservation applies"
+        }
+      },
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.SeatSelection"
+    },
+    "seatType": {
+      "description": "hall, table etc.",
+      "enum": [
+        "HALL",
+        "TABLE",
+        "HANDICAPPED"
+      ],
+      "goType": "RailSeatType",
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.rail.SeatType"
+    },
+    "ticketDelivery": {
+      "additionalProperties": false,
+      "description": "Information necessary to deliver a ticket",
+      "goType": "RailTicketDelivery",
+      "properties": {
+        "data": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "Descriptive data for given ticket delivery (address, phone number, url etc.)",
+          "type": "string"
+        },
+        "fee": {
+          "$ref": "#/definitions/feeAmountCurrency",
+          "dataClassification": [],
+          "description": "The fee associated with the ticket delivery option."
+        },
+        "filename": {
+          "dataClassification": [],
+          "description": "Name of the file which contains the ticket",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "isCollectableAtOriginStation": {
+          "dataClassification": [],
+          "description": "Indicates whether the traveler can collect the ticket at the origin station or not. null/missing if unknown or irrelevant.",
+          "type": "boolean"
+        },
+        "type": {
+          "$ref": "#/definitions/ticketDeliveryType",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "url": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "Contains the URL that the user can navigate to to find more information about the collection for this ticket delivery (link to ETICKET, possible collection places for KIOSK, etc.). null/missing if unknown or irrelevant.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.rail.TicketDelivery"
+    },
+    "ticketDeliveryType": {
+      "dataClassification": [],
+      "description": "Means of delivering a ticket",
+      "enum": [
+        "EMAIL",
+        "ETICKET",
+        "KIOSK",
+        "LINK",
+        "MAIL",
+        "PASSBOOK",
+        "PICKUP",
+        "PRINT",
+        "QR_IMAGE",
+        "SMS"
+      ],
+      "goType": "RailTicketDeliveryType",
+      "groups": [
+        "external"
+      ],
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.rail.TicketDeliveryType"
+    }
+  },
+  "id": "rail-shared.json"
+}

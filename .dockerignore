@@ -1,0 +1,12 @@
+.github/
+.git/
+.gitignore
+.env
+__pycache__/
+*.pyc
+*.pyo
+auto-sdlc.code-workspace
+diagram-*.mmd
+qwen-3-5-vllm-api.ipynb
+sdlc.ps1
+Dockerfile.txt

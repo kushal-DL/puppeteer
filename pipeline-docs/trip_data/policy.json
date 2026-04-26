@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "journeyFareCompliance": {
+      "additionalProperties": false,
+      "goType": "JourneyFareCompliance",
+      "properties": {
+        "batchId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "default": "00000000-0000-0000-0000-000000000000",
+          "description": "Id added by policy to denote the batch of inventory evaluated. Default value implies no corresponding batch."
+        },
+        "fares": {
+          "dataClassification": [],
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "fareId": {
+                "$ref": "shared.json#/definitions/uuid",
+                "dataClassification": [],
+                "default": "00000000-0000-0000-0000-000000000000",
+                "description": "The id of the fare which is one of the permissible fares that can be purchased for this journey"
+              },
+              "ruleMatches": {
+                "dataClassification": [],
+                "description": "Array of rules that matched the journey fare. If a rules action overrides another rule the rule that is overridden will not be in this array. ruleMatches will not be defined if no rules match.",
+                "items": {
+                  "$ref": "#/definitions/ruleMatch"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "fareId",
+              "ruleMatches"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "skipViolationReason": {
+          "dataClassification": [],
+          "default": false,
+          "description": "Whether skip violation reason",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "batchId",
+        "fares",
+        "skipViolationReason"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.JourneyFareCompliance"
+    },
+    "policyCompliance": {
+      "additionalProperties": false,
+      "goType": "PolicyCompliance",
+      "properties": {
+        "batchId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "default": "00000000-0000-0000-0000-000000000000",
+          "description": "Id added by policy to denote the batch of inventory evaluated. Default value implies no corresponding batch."
+        },
+        "ruleMatches": {
+          "dataClassification": [],
+          "description": "Array of rules that matched the rate. If a rules action overrides another rule the rule that is overridden will not be in this array. ruleMatches will not be defined if no rules match.",
+          "items": {
+            "$ref": "#/definitions/ruleMatch"
+          },
+          "type": "array"
+        },
+        "skipViolationReason": {
+          "dataClassification": [],
+          "default": false,
+          "description": "Whether skip violation reason",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "batchId",
+        "skipViolationReason"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.PolicyCompliance"
+    },
+    "ruleMatch": {
+      "additionalProperties": false,
+      "goType": "RuleMatch",
+      "properties": {
+        "action": {
+          "dataClassification": [],
+          "description": "Action to apply to rate.",
+          "enum": [
+            "ALLOW",
+            "REQUIRE_APPROVAL",
+            "REQUIRE_PRE_APPROVAL_N_LOG",
+            "REQUIRE_PRE_APPROVAL_N_NOTIFY",
+            "REQUIRE_PASSIVE_APPROVAL",
+            "NOTIFY_MANAGER",
+            "LOG_FOR_REPORTS",
+            "HIDE_RESULTS",
+            "DISPLAY_MESSAGE",
+            "SHOW_DO_NOT_ALLOW"
+          ],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "message": {
+          "dataClassification": [],
+          "description": "The message associated with the rule. This is needed often, even if rate is not selected (displayed by UI).",
+          "type": "string"
+        },
+        "ruleValueId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "ruleValueId of rule that this rate matched",
+          "groups": [
+            "external"
+          ]
+        }
+      },
+      "required": [
+        "action",
+        "ruleValueId"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.RuleMatch"
+    }
+  },
+  "id": "policy.json"
+}

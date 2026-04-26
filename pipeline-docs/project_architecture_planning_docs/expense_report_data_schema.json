@@ -1,0 +1,1794 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "expense-reports-schema.json",
+  "version": "v1",
+  "title": "Expense Report",
+  "description": "Expense Report",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "creationTimestamp": {
+      "dataClassification": [],
+      "description": "UTC timestamp of report creation",
+      "type": "string",
+      "format": "date-time"
+    },
+    "revisionTimestamp": {
+      "dataClassification": [],
+      "description": "UTC timestamp of report modification",
+      "type": "string",
+      "format": "date-time"
+    },
+    "companyId": {
+      "dataClassification": [],
+      "description": "company UUID",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "reportName": {
+      "dataClassification": [],
+      "description": "report name",
+      "type": "string"
+    },
+    "reportOwner": {
+      "dataClassification": [
+        "PII"
+      ],
+      "description": "traveler UUID",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "reportDelegate": {
+      "dataClassification": [
+        "PII"
+      ],
+      "description": "delegate UUID",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "reportDate": {
+      "dataClassification": [],
+      "description": "report date typed by user",
+      "type": "string",
+      "format": "date"
+    },
+    "reportId": {
+      "dataClassification": [],
+      "description": "unique ID of the report within the company",
+      "maxLength": 32,
+      "type": "string"
+    },
+    "reportNumber": {
+      "dataClassification": [],
+      "description": "short unique ID of the report",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "reportType": {
+      "dataClassification": [],
+      "description": "Type of expense report. SR: Statement Report; CR: Reconciliation Report; RR: Expense Assistant Report; RG: n/a",
+      "type": [
+        "null",
+        "string"
+      ],
+      "enum": [
+        "SR",
+        "CR",
+        "RR",
+        "RG",
+        null
+      ]
+    },
+    "policyId": {
+      "dataClassification": [],
+      "description": "policy ID for the report",
+      "type": [
+        "null",
+        "string"
+      ],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "submitTimestamp": {
+      "dataClassification": [],
+      "description": "date the report was submitted",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "firstSubmitTimestamp": {
+      "dataClassification": [],
+      "description": "date the report was submitted first",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "firstApprovedTimestamp": {
+      "dataClassification": [],
+      "description": "date the report was approved first",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "processorEntryTimestamp": {
+      "dataClassification": [],
+      "description": "date the report entered processor queue",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "processingPaymentTimestamp": {
+      "dataClassification": [],
+      "description": "date the report entered extract step",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "paidTimestamp": {
+      "dataClassification": [],
+      "description": "date the report was paid",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "rejectionReasonCodes": {
+      "dataClassification": [],
+      "description": "the reason code for report if it is rejected or sent back. INDT: Incorrect Details; INET: Incorrect Expense Type; INIT: Incorrect Itemization; INRS: Incorrect Receipt/Substantiation; MCAT: Missing Card Transaction; MIRS: Missing Receipt/Substantiation; MIRA: Missing Required Approval; OOPO: Outside of Policy",
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "dataClassification": [],
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          "reasonCode": {
+            "dataClassification": [],
+            "type": "string",
+            "enum": [
+              "INDT",
+              "INET",
+              "INIT",
+              "INRS",
+              "MCAT",
+              "MIDT",
+              "MIRA",
+              "MIRS",
+              "OOPO"
+            ]
+          }
+        }
+      }
+    },
+    "totalAmountDueCompanyCard": {
+      "dataClassification": [],
+      "description": "Amount due company card",
+      "type": "number"
+    },
+    "totalApprovedAmount": {
+      "dataClassification": [],
+      "description": "Amount approved",
+      "type": "number"
+    },
+    "totalClaimedAmount": {
+      "dataClassification": [],
+      "description": "Amount claimed by traveler",
+      "type": "number"
+    },
+    "totalPaymentConfirmedAmount": {
+      "dataClassification": [],
+      "description": "payment confirmed amount by ERP",
+      "type": "number"
+    },
+    "totalPersonalAmount": {
+      "dataClassification": [],
+      "description": "Total personal amount reported by traveler",
+      "type": "number"
+    },
+    "totalPostedAmount": {
+      "dataClassification": [],
+      "description": "Total report amount",
+      "type": "number"
+    },
+    "cashAdvanceReturnAmount": {
+      "dataClassification": [],
+      "description": "cash advance return amount",
+      "type": "number"
+    },
+    "cashAdvanceUtilizedAmount": {
+      "dataClassification": [],
+      "description": "cash advance utilized amount",
+      "type": "number"
+    },
+    "approvalStatus": {
+      "dataClassification": [],
+      "description": "The report's approval status. A_NOTF: Not Submitted; A_FILE: Submitted; A_PEND: Submitted &amp; Pending Approval; A_APPR: Approved; A_ACCO: Approved &amp; in Accounting Review; A_RESU: Sent Back to Employee; A_PVAL: Pending Validation; A_PECO: Pending Cost Object Approval; A_PBDG: Pending Budget Approval; A_RHLD: Hold for Receipt Image; A_PCAS: Pending Control Audit Service; A_TEXP: Approval Time Expired; A_EXRW: Pending Exception Review; A_PREC: Recalled to Processor; A_TREC: Recalled by Traveller; A_AAFH:Anomaly &amp; Fraud Check; A_EXTV: Pending External Validation; A_FOBG: Pending Funds Reservation; A_FCHK: Pending Funds Check",
+      "type": "string"
+    },
+    "paymentStatus": {
+      "dataClassification": [],
+      "description": "The report's payment status. P_HOLD: Holding Payment; P_NOTP: Not Paid; P_PAID: Paid; P_PAYC: Payment Confirmed; P_PROC: Processing Payment; P_FAIL: Financial Posting Failed",
+      "type": "string",
+      "enum": [
+        "P_FAIL",
+        "P_HOLD",
+        "P_NOTP",
+        "P_PAID",
+        "P_PAYC",
+        "P_PROC"
+      ]
+    },
+    "auditStatus": {
+      "dataClassification": [],
+      "description": "The status of audit for the report. PASS: Audit passed; FAIL: Audit failed; NOTR: Audit not required",
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOTR"
+      ]
+    },
+    "businessPurpose": {
+      "dataClassification": [],
+      "description": "Business purpose of expense report",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "country": {
+      "dataClassification": [
+        "sensitive"
+      ],
+      "description": "point in time value of employee country",
+      "type": "string",
+      "maxLength": 2
+    },
+    "countrySubdivision": {
+      "dataClassification": [
+        "sensitive"
+      ],
+      "description": "point in time value of employee country subdivision",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "reimbursementCurrency": {
+      "dataClassification": [],
+      "description": "3 letter ISO currency code. This is related to reimbursement amount",
+      "maxLength": 3,
+      "type": "string"
+    },
+    "limitApproved": {
+      "dataClassification": [],
+      "description": "has the report been limit approved against the total amount",
+      "type": "boolean"
+    },
+    "exceptionApproved": {
+      "dataClassification": [],
+      "description": "has this report been approved by an authorized approver with exception authority",
+      "type": "boolean"
+    },
+    "exceptionLevelTotal": {
+      "dataClassification": [],
+      "description": "Sum of the severity levels assigned to exceptions the expense report generated",
+      "type": "integer"
+    },
+    "exceptionLevelMax": {
+      "dataClassification": [],
+      "description": "Maximum severity level among the exceptions the expense report generated",
+      "type": "integer"
+    },
+    "startDate": {
+      "dataClassification": [],
+      "description": "start date of report",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date"
+    },
+    "endDate": {
+      "dataClassification": [],
+      "description": "end date of report",
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date"
+    },
+    "ledgerCode": {
+      "dataClassification": [],
+      "description": "ledger code of the report",
+      "type": "string"
+    },
+    "delegateSubmitted": {
+      "dataClassification": [],
+      "description": "flag indicating if the report was submitted by delegate",
+      "type": "boolean"
+    },
+    "delegateApproved": {
+      "dataClassification": [],
+      "description": "flag indicating if the report was approved by delegate",
+      "type": "boolean"
+    },
+    "delegateCreated": {
+      "dataClassification": [],
+      "description": "flag indicating if the report was created by delegate",
+      "type": "boolean"
+    },
+    "hasReceivedCashAdvanceReturn": {
+      "dataClassification": [],
+      "description": "flag indicating if the report contains cash advance return",
+      "type": "boolean"
+    },
+    "isFinancialIntegrationEnabled": {
+      "dataClassification": [],
+      "description": "Does the report get integrated with SAP FI",
+      "type": "boolean"
+    },
+    "hasReceivedPaperReceipts": {
+      "dataClassification": [],
+      "description": "have there been paper receipts received for this report",
+      "type": "boolean"
+    },
+    "isReceiptImageRequired": {
+      "dataClassification": [],
+      "description": "are image receipts required",
+      "type": "boolean"
+    },
+    "isReceiptImageAvailable": {
+      "dataClassification": [],
+      "description": "does the report have receipt images available",
+      "type": "boolean"
+    },
+    "isReceiptRequired": {
+      "dataClassification": [],
+      "description": "are receipts required",
+      "type": "boolean"
+    },
+    "hasReceipts": {
+      "dataClassification": [],
+      "description": "have the receipts been received for this report",
+      "type": "boolean"
+    },
+    "isReopened": {
+      "dataClassification": [],
+      "description": "has this report been reopened",
+      "type": "boolean"
+    },
+    "everSentBack": {
+      "dataClassification": [],
+      "description": "has this report been ever sent back",
+      "type": "boolean"
+    },
+    "reportingGroup": {
+      "dataClassification": [],
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "dataClassification": [],
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "name": {
+          "dataClassification": [],
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "customFields": {
+      "dataClassification": [],
+      "description": "list of custom fields. The value is unique ID of ListItem if the field is a list field.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "dataType": {
+            "type": "string",
+            "enum": [
+              "VARCHAR",
+              "LIST",
+              "MLIST",
+              "BOOLEANCHAR",
+              "MONEY",
+              "INTEGER",
+              "NUMERIC",
+              "CHAR",
+              "TIMESTAMP"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "dataType",
+          "value"
+        ]
+      }
+    },
+    "exceptions": {
+      "dataClassification": [],
+      "description": "list of exceptions attached to the report",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          "cleared": {
+            "type": "boolean"
+          },
+          "exceptionCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cleared",
+          "exceptionCode"
+        ]
+      }
+    },
+    "comments": {
+      "description": "list of comments attached to the report",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          "commentText": {
+            "dataClassification": [],
+            "maxLength": 4000,
+            "type": "string"
+          },
+          "creationTimestamp": {
+            "dataClassification": [],
+            "type": "string",
+            "format": "date-time"
+          },
+          "addedBy": {
+            "dataClassification": [
+              "PII"
+            ],
+            "description": "UUID of the comment author",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "addedFor": {
+            "dataClassification": [
+              "PII"
+            ],
+            "description": "UUID of the person for which the comment has been added",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "commentText",
+          "creationTimestamp"
+        ]
+      }
+    },
+    "workflowSteps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sequenceNumber": {
+            "dataClassification": [],
+            "type": "integer"
+          },
+          "stepId": {
+            "dataClassification": [],
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          "name": {
+            "dataClassification": [],
+            "type": "string",
+            "maxLength": 256
+          },
+          "entryTimeStamp": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "actionTimeStamp": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "actor": {
+            "dataClassification": [
+              "PII"
+            ],
+            "description": "UUID of who took the action",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "delegate": {
+            "dataClassification": [
+              "PII"
+            ],
+            "description": "UUID of delegate if delegate took the action",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roleCode": {
+            "dataClassification": [],
+            "description": "the role code of the user assigned on the step. SYSTEM: System; MANAGER: Expense Approver; MANAGER1: Default Approver; MANAGER2: Default Approver 2; CO_APPROVER: Cost Object Approver; AUTH_APPROVER: Authorized Approver; BDGT_APPROVER: Budget Approver / Manager; BUDGET_OWNER: Budget Owner; EXTERNAL_SYSTEM: External System; ACCT_CLERK: Expense Processor; ACCT_MANAGER: Expense Processor Manager; ACCT_AUDIT_MGR: Expense Processor (Audit); CONCUR_AUDITOR: Expense Processor(Concur Audit); TRAVEL_ADMIN: Authorization Request Administrator; CR_PROCESSOR: Central Reconciliation Processor",
+            "type": "string",
+            "enum": [
+              "SYSTEM",
+              "MANAGER",
+              "MANAGER1",
+              "MANAGER2",
+              "CO_APPROVER",
+              "AUTH_APPROVER",
+              "BDGT_APPROVER",
+              "BUDGET_OWNER",
+              "EXTERNAL_SYSTEM",
+              "ACCT_CLERK",
+              "ACCT_MANAGER",
+              "ACCT_AUDIT_MGR",
+              "CONCUR_AUDITOR",
+              "TRAVEL_ADMIN",
+              "CR_PROCESSOR",
+              "NATIVE_INTG"
+            ]
+          },
+          "finalStatus": {
+            "dataClassification": [],
+            "maxLength": 6,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "childWorkflows": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "dataClassification": [],
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                "costObject": {
+                  "dataClassification": [],
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "workflowSteps": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sequenceNumber": {
+                        "dataClassification": [],
+                        "type": "integer"
+                      },
+                      "stepId": {
+                        "dataClassification": [],
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                        "type": "string"
+                      },
+                      "name": {
+                        "dataClassification": [],
+                        "type": "string",
+                        "maxLength": 256
+                      },
+                      "entryTimeStamp": {
+                        "dataClassification": [],
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "actionTimeStamp": {
+                        "dataClassification": [],
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "actor": {
+                        "dataClassification": [
+                          "PII"
+                        ],
+                        "description": "UUID of who took the action",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "delegate": {
+                        "dataClassification": [
+                          "PII"
+                        ],
+                        "description": "UUID of delegate if delegate took the action",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "roleCode": {
+                        "dataClassification": [],
+                        "description": "the role code of the user assigned on the step. SYSTEM: System; CO_APPROVER: Cost Object Approver; BDGT_APPROVER: Budget Approver / Manager",
+                        "type": "string",
+                        "enum": [
+                          "SYSTEM",
+                          "CO_APPROVER",
+                          "BDGT_APPROVER"
+                        ]
+                      },
+                      "finalStatus": {
+                        "dataClassification": [],
+                        "maxLength": 6,
+                        "type": [
+                          "null",
+                          "string"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "sequenceNumber",
+                      "name",
+                      "stepId"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "workflowSteps"
+              ]
+            }
+          }
+        },
+        "required": [
+          "sequenceNumber",
+          "name",
+          "stepId"
+        ]
+      }
+    },
+    "expenses": {
+      "description": "list of expenses attached to the report",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "dataClassification": [],
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          "parentId": {
+            "dataClassification": [],
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expenseType": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessPurpose": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transactionDate": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "ccTransactionId": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tripUuid": {
+            "dataClassification": [],
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bookingUuid": {
+            "dataClassification": [],
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transactionAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "postedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "claimedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "adjustedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "approvedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "totalTaxPostedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "totalTaxAdjustedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "totalReclaimPostedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "totalReclaimAdjustedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "calculatedAdjustedAmount": {
+            "dataClassification": [],
+            "type": "number"
+          },
+          "spendCategory": {
+            "dataClassification": [],
+            "description": "spend category code for the expense. ADVTG: Advertising/Marketing; AIRFR: Airfare; CARRT: Car Rental; CASHA: Cash Advance - Not Partially Approvable; CASHN: Cash Advance - Standard; COCAR: Company Car - Fixed Expense; COCRM: Company Car - Mileage Reimbursement; COMPU: Computer; ENTER: Entertainment; FEESD: Fees/Dues; GASXX: Gas; GRTRN: Ground Transportation; JGTRN: Ground Transportation - Japanese; LODGA: Lodging - Track Hotel Spending; LODGN: Lodging - Do Not Track Hotel Spending; MEALA: Meal - Count in Daily Meal Allowance; MEALN: Meal - Do Not Count in Daily Meal Allowance; MEALS: Meal; MEETG: Meetings; MFUEL: Fuel For Mileage; OFFIC: Office Supplies; OTHER: Other; PRCAR: Personal Car - Fixed Expense; PRCRM: Personal Car - Mileage Reimbursement; PRKNG: Personal Car - Parking Expense; RAILX: Train; SHIPG: Shipping; SUBSC: Subscription/Publication; TELEC: Telecom/Internet; TRADE: Trade/Convention; TRAIN: Training; ACCNT: Accounting; ABFEE: Agent/Booking Fees; CARXX: Car Related; DONAT: Donations; CONSL: Consulting Services; FACLT: Facility; FINAN: Financial Services; GIFTS: Gifts; INSUR: Insurance; JANTR: Janitorial; LEGAL: Legal Services; LODGT: Lodging Tax; LODGX: Lodging; OSUPP: Other Supplies; PRNTG: Printing/Reproduction; PROFS: Professional Services; RENTL: Rent; STAFF: Staffing; UTLTS: Utilities; AIRFE: Airline Fees; GOODW: Goodwill; INCTA: Incidental - Count in Daily Incidental Allowance",
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ADVTG",
+              "AIRFR",
+              "CARRT",
+              "CASHA",
+              "CASHN",
+              "COCAR",
+              "COCRM",
+              "COMPU",
+              "ENTER",
+              "FEESD",
+              "GASXX",
+              "GRTRN",
+              "JGTRN",
+              "LODGA",
+              "LODGN",
+              "MEALA",
+              "MEALN",
+              "MEALS",
+              "MEETG",
+              "MFUEL",
+              "OFFIC",
+              "OTHER",
+              "PRCAR",
+              "PRCRM",
+              "PRKNG",
+              "RAILX",
+              "SHIPG",
+              "SUBSC",
+              "TELEC",
+              "TRADE",
+              "TRAIN",
+              "ACCNT",
+              "ABFEE",
+              "CARXX",
+              "DONAT",
+              "CONSL",
+              "FACLT",
+              "FINAN",
+              "GIFTS",
+              "INSUR",
+              "JANTR",
+              "LEGAL",
+              "LODGT",
+              "LODGX",
+              "OSUPP",
+              "PRNTG",
+              "PROFS",
+              "RENTL",
+              "STAFF",
+              "UTLTS",
+              "AIRFE",
+              "GOODW",
+              "INCTA",
+              null
+            ]
+          },
+          "source": {
+            "dataClassification": [],
+            "description": "The source associated with the expense. MOBIL: Mobile; CONNT: Connect; EXPIT: ExpenseIt OTHER: Other",
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MOBIL",
+              "CONNT",
+              "EXPIT",
+              "OTHER",
+              null
+            ]
+          },
+          "isPersonal": {
+            "dataClassification": [],
+            "description": "The type of transaction associated with the expense. STD: Standard Entry; PAR: Parent Entry; REG: Reqular Entry CHD: Child Entry",
+            "type": "boolean"
+          },
+          "transactionType": {
+            "dataClassification": [],
+            "type": "string",
+            "enum": [
+              "STD",
+              "PAR",
+              "REG",
+              "CHD"
+            ]
+          },
+          "vendor": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "dataClassification": [],
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The value is unique ID of ListItem"
+              },
+              "description": {
+                "dataClassification": [],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "country": {
+            "dataClassification": [
+              "sensitive"
+            ],
+            "maxLength": 2,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "countrySubdivision": {
+            "dataClassification": [
+              "sensitive"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attendeeCount": {
+            "dataClassification": [],
+            "type": "integer"
+          },
+          "exceptionCount": {
+            "dataClassification": [],
+            "type": "integer"
+          },
+          "transactionCurrencyCode": {
+            "dataClassification": [],
+            "description": "3 letter ISO currency code. This is related to transaction amount",
+            "type": "string",
+            "maxLength": 3
+          },
+          "digitalTaxInvoice": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "dataClassification": [],
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "certificateNumber": {
+                "dataClassification": [],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "vendorDescription": {
+                "dataClassification": [],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "taxId": {
+                "dataClassification": [],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "dataClassification": [],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "totalAmount": {
+                "dataClassification": [],
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "exchangeRate": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "dataClassification": [],
+                "description": "Exchange rate data for the expense",
+                "type": "number"
+              },
+              "direction": {
+                "dataClassification": [],
+                "description": "The operation on the Exchange rate. M: Multiply; D: Divide",
+                "type": "string",
+                "enum": [
+                  "M",
+                  "D"
+                ]
+              }
+            },
+            "required": [
+              "value",
+              "direction"
+            ]
+          },
+          "relatedCashAdvance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "cashAdvanceId": {
+                "dataClassification": [],
+                "type": "string",
+                "maxLength": 32,
+                "pattern": "^[A-F0-9]{32}$"
+              },
+              "cashAdvanceUtilizedAmount": {
+                "dataClassification": [],
+                "type": "number"
+              }
+            }
+          },
+          "hasMissingReceiptAffidavit": {
+            "dataClassification": [],
+            "type": "boolean"
+          },
+          "hasEReceipt": {
+            "dataClassification": [],
+            "type": "boolean"
+          },
+          "receiptType": {
+            "dataClassification": [],
+            "description": "report entry receipt type. T: Tax Receipt; R: Regular Receipt; N: No receipt",
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "N",
+              "R",
+              "T",
+              null
+            ]
+          },
+          "receiptRequired": {
+            "dataClassification": [],
+            "type": "boolean"
+          },
+          "receiptReceived": {
+            "dataClassification": [],
+            "type": "boolean"
+          },
+          "imageRequired": {
+            "dataClassification": [],
+            "type": "boolean"
+          },
+          "foreignOrDomestic": {
+            "dataClassification": [],
+            "type": "string",
+            "enum": [
+              "HOME",
+              "FRGN",
+              "OOSD"
+            ]
+          },
+          "ticketNumber": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hotelCheckinDate": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "hotelCheckoutDate": {
+            "dataClassification": [],
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "fromLocation": {
+            "dataClassification": [
+              "sensitive"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "toLocation": {
+            "dataClassification": [
+              "sensitive"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "carRentalDays": {
+            "dataClassification": [],
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "paymentType": {
+            "dataClassification": [],
+            "description": "Report entry payment type name",
+            "type": "string"
+          },
+          "paymentTypeCode": {
+            "dataClassification": [],
+            "description": "Report entry payment type code",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isBillable": {
+            "dataClassification": [],
+            "type": "boolean"
+          },
+          "hasVAT": {
+            "dataClassification": [],
+            "type": "boolean"
+          },
+          "customFields": {
+            "description": "list of custom fields. The value is long code if the field is a list field.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "dataClassification": [],
+                  "type": "string"
+                },
+                "dataType": {
+                  "dataClassification": [],
+                  "type": "string",
+                  "enum": [
+                    "VARCHAR",
+                    "LIST",
+                    "MLIST",
+                    "BOOLEANCHAR",
+                    "MONEY",
+                    "INTEGER",
+                    "NUMERIC",
+                    "CHAR",
+                    "TIMESTAMP"
+                  ]
+                },
+                "label": {
+                  "dataClassification": [],
+                  "type": "string"
+                },
+                "value": {
+                  "dataClassification": [],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "dataType",
+                "value"
+              ]
+            }
+          },
+          "comments": {
+            "description": "list of comments attached to the report entry",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                "commentText": {
+                  "dataClassification": [],
+                  "maxLength": 4000,
+                  "type": "string"
+                },
+                "creationTimestamp": {
+                  "dataClassification": [],
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "addedBy": {
+                  "dataClassification": [
+                    "PII"
+                  ],
+                  "description": "UUID of the comment author",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "addedFor": {
+                  "dataClassification": [
+                    "PII"
+                  ],
+                  "description": "UUID of the person for which the comment has been added",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "commentText",
+                "creationTimestamp"
+              ]
+            }
+          },
+          "exceptions": {
+            "description": "list of exceptions attached to the report entry",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                "cleared": {
+                  "dataClassification": [],
+                  "type": "boolean"
+                },
+                "exceptionCode": {
+                  "dataClassification": [],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "cleared",
+                "exceptionCode"
+              ]
+            }
+          },
+          "attendees": {
+            "description": "list of attendees attached to the report entry",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "dataClassification": [],
+                  "type": "string"
+                },
+                "transactionAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "approvedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "attendeeApprovedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "customFields": {
+                  "description": "list of custom fields. The value is long code if the field is a list field.",
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "dataType": {
+                        "dataClassification": [],
+                        "type": "string",
+                        "enum": [
+                          "VARCHAR",
+                          "LIST",
+                          "MLIST",
+                          "BOOLEANCHAR",
+                          "MONEY",
+                          "INTEGER",
+                          "NUMERIC",
+                          "CHAR",
+                          "TIMESTAMP"
+                        ]
+                      },
+                      "label": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "value": {
+                        "dataClassification": [],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "dataType",
+                      "value"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                "source": {
+                  "dataClassification": [],
+                  "type": "string"
+                },
+                "taxCode": {
+                  "dataClassification": [],
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reclaimCode": {
+                  "dataClassification": [],
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "transactionAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "postedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "transactionAdjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "adjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimTransactionAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimPostedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimAdjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimTransactionAdjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "customFields": {
+                  "description": "list of custom fields. The value is long code if the field is a list field.",
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "dataType": {
+                        "dataClassification": [],
+                        "type": "string",
+                        "enum": [
+                          "VARCHAR",
+                          "LIST",
+                          "MLIST",
+                          "BOOLEANCHAR",
+                          "MONEY",
+                          "INTEGER",
+                          "NUMERIC",
+                          "CHAR",
+                          "TIMESTAMP"
+                        ]
+                      },
+                      "label": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "value": {
+                        "dataClassification": [],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "dataType",
+                      "value"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "allocations": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                "percentage": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "transactionAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "postedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "transactionAdjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "adjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimTransactionAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimPostedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimAdjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "reclaimTransactionAdjustedAmount": {
+                  "dataClassification": [],
+                  "type": "number"
+                },
+                "accountCodes": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "accountCode1": {
+                      "dataClassification": [],
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "accountCode2": {
+                      "dataClassification": [],
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "customFields": {
+                  "description": "list of custom fields. The value is long code if the field is a list field.",
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "dataType": {
+                        "dataClassification": [],
+                        "type": "string",
+                        "enum": [
+                          "VARCHAR",
+                          "LIST",
+                          "MLIST",
+                          "BOOLEANCHAR",
+                          "MONEY",
+                          "INTEGER",
+                          "NUMERIC",
+                          "CHAR",
+                          "TIMESTAMP"
+                        ]
+                      },
+                      "label": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "value": {
+                        "dataClassification": [],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "dataType",
+                      "value"
+                    ]
+                  }
+                },
+                "exceptions": {
+                  "description": "list of exceptions attached to the allocation",
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                        "type": "string"
+                      },
+                      "cleared": {
+                        "dataClassification": [],
+                        "type": "boolean"
+                      },
+                      "exceptionCode": {
+                        "dataClassification": [],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "cleared",
+                      "exceptionCode"
+                    ]
+                  }
+                },
+                "journals": {
+                  "description": "list of journals attached to the allocation",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "payer": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "payee": {
+                        "dataClassification": [],
+                        "type": "string"
+                      },
+                      "amount": {
+                        "dataClassification": [],
+                        "type": "number"
+                      },
+                      "accountCode": {
+                        "dataClassification": [],
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "debitOrCredit": {
+                        "dataClassification": [],
+                        "description": "Journal debit or credit. DR: Debit; CR: Credit",
+                        "type": "string",
+                        "enum": [
+                          "DR",
+                          "CR"
+                        ]
+                      },
+                      "cardBillingAmount": {
+                        "dataClassification": [],
+                        "type": "number"
+                      },
+                      "netTaxAmount": {
+                        "dataClassification": [],
+                        "type": "number"
+                      },
+                      "netReclaimAmount": {
+                        "dataClassification": [],
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "mileage": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "businessDistance": {
+                "dataClassification": [],
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "personalDistance": {
+                "dataClassification": [],
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "odometerStart": {
+                "dataClassification": [],
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "odometerEnd": {
+                "dataClassification": [],
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "passengerCount": {
+                "dataClassification": [],
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "carId": {
+                "dataClassification": [],
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "transactionType",
+          "postedAmount",
+          "receiptRequired",
+          "foreignOrDomestic",
+          "hasVAT",
+          "exchangeRate",
+          "transactionAmount",
+          "transactionCurrencyCode"
+        ]
+      }
+    }
+  },
+  "required": [
+    "creationTimestamp",
+    "revisionTimestamp",
+    "reportName",
+    "reportOwner",
+    "reportId",
+    "approvalStatus",
+    "paymentStatus",
+    "reimbursementCurrency",
+    "ledgerCode",
+    "country",
+    "companyId"
+  ]
+}

@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HiveShip — Observability Dashboard</title>
+<style>
+:root {
+  --bg: #0F172A;
+  --bg2: #1A233B;
+  --bg3: #1E293B;
+  --border: #374151;
+  --gold: #FFC107;
+  --blue: #64B5F6;
+  --green: #66BB6A;
+  --red: #EF5350;
+  --orange: #FFA726;
+  --cyan: #26C6DA;
+  --white: #E2E8F0;
+  --gray: #94A3B8;
+  --dim: #64748B;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--white); font-family: var(--font); font-size: 14px; }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Header ───────────────────────────────────────────────────────── */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+header h1 { color: var(--gold); font-size: 20px; font-weight: 700; }
+header .subtitle { color: var(--gray); font-size: 13px; }
+header .stats {
+  margin-left: auto;
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+}
+header .stat-val { color: var(--gold); font-weight: 700; font-size: 16px; }
+header .stat-label { color: var(--dim); }
+
+/* ── Layout ───────────────────────────────────────────────────────── */
+.container { display: flex; height: calc(100vh - 52px); }
+.sidebar {
+  width: 360px;
+  min-width: 300px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar h2 {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--gray);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.job-list { flex: 1; overflow-y: auto; }
+.job-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.job-item:hover { background: var(--bg3); }
+.job-item.active { background: var(--bg3); border-left: 3px solid var(--gold); }
+.job-item .goal {
+  font-size: 13px;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+.job-item .meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--dim);
+}
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.badge.complete { background: #1B5E20; color: var(--green); }
+.badge.failed { background: #B71C1C33; color: var(--red); }
+.badge.running { background: #0D47A133; color: var(--blue); }
+.badge.accepted, .badge.queued { background: #37474F; color: var(--gray); }
+.badge.type-gen { background: #0D47A133; color: var(--blue); border: 1px solid var(--blue); }
+.badge.type-rev { background: #4A148C33; color: #CE93D8; border: 1px solid #CE93D8; }
+
+.pr-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--cyan);
+  background: rgba(38,198,218,0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(38,198,218,0.3);
+}
+.pr-link:hover { background: rgba(38,198,218,0.2); }
+
+.job-item.revision-child {
+  padding-left: 32px;
+  border-left: 2px solid #CE93D8;
+}
+.job-item.revision-child .goal::before {
+  content: '↩ ';
+  color: #CE93D8;
+}
+
+.main { flex: 1; overflow-y: auto; padding: 20px; }
+.main.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+  font-size: 16px;
+}
+
+/* ── Job Detail ───────────────────────────────────────────────────── */
+.detail-header { margin-bottom: 16px; }
+.detail-header h2 { color: var(--gold); font-size: 18px; margin-bottom: 4px; }
+.detail-header .goal-text { color: var(--gray); font-size: 14px; }
+
+/* Pipeline progress */
+.pipeline {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--bg2);
+  border-radius: 8px;
+  padding: 12px;
+}
+.pipeline .step {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: var(--bg);
+  color: var(--dim);
+  border: 1px solid var(--border);
+}
+.pipeline .step.done { background: #1B5E20; color: var(--green); border-color: var(--green); }
+.pipeline .step.active { background: #0D47A1; color: var(--blue); border-color: var(--blue); animation: pulse 1.5s infinite; }
+.pipeline .step.error { background: #B71C1C; color: var(--red); border-color: var(--red); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* Sections */
+.section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.section-title {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Agent grid */
+.agent-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+}
+.agent-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  min-width: 140px;
+  font-size: 12px;
+}
+.agent-card .name { font-weight: 700; color: var(--white); margin-bottom: 4px; }
+.agent-card.completed { border-color: var(--green); }
+.agent-card.completed .name { color: var(--green); }
+.agent-card.failed { border-color: var(--red); }
+.agent-card.failed .name { color: var(--red); }
+.agent-card.running { border-color: var(--blue); }
+.agent-card.running .name { color: var(--blue); }
+.agent-card.blocked { border-color: var(--orange); }
+.agent-card.blocked .name { color: var(--orange); }
+.agent-card.pruned { border-color: var(--dim); opacity: 0.5; }
+.agent-card.pending { border-color: var(--border); }
+
+/* Timeline */
+.timeline-container { padding: 12px 16px; overflow-x: auto; }
+.timeline-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  height: 28px;
+}
+.timeline-label {
+  width: 140px;
+  min-width: 140px;
+  font-size: 11px;
+  color: var(--gray);
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.timeline-track { flex: 1; position: relative; height: 20px; }
+.timeline-bar {
+  position: absolute;
+  height: 16px;
+  top: 2px;
+  border-radius: 3px;
+  min-width: 4px;
+  font-size: 9px;
+  line-height: 16px;
+  padding: 0 4px;
+  color: var(--bg);
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.timeline-bar.completed { background: var(--green); }
+.timeline-bar.failed { background: var(--red); }
+.timeline-bar.running { background: var(--blue); }
+.timeline-bar.blocked { background: var(--orange); }
+.timeline-bar.pruned { background: var(--dim); }
+.timeline-bar.pending { background: var(--border); }
+
+/* Event log */
+.event-log { max-height: 300px; overflow-y: auto; padding: 8px 16px; }
+.event-row {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 12px;
+  font-family: var(--mono);
+  border-bottom: 1px solid #1E293B;
+}
+.event-row .ev-time { color: var(--dim); min-width: 85px; }
+.event-row .ev-type { min-width: 120px; font-weight: 600; }
+.event-row .ev-type.agent_started { color: var(--blue); }
+.event-row .ev-type.agent_done { color: var(--green); }
+.event-row .ev-type.agent_failed { color: var(--red); }
+.event-row .ev-type.agent_pruned { color: var(--dim); }
+.event-row .ev-type.helper_spawned { color: var(--orange); }
+.event-row .ev-detail { color: var(--gray); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* LLM Calls (from telemetry) */
+.llm-log { padding: 8px 16px; max-height: 400px; overflow-y: auto; }
+.llm-call {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.llm-call-header {
+  padding: 8px 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 12px;
+}
+.llm-call-header:hover { background: var(--bg3); }
+.llm-call-header .call-id { color: var(--gold); font-weight: 700; min-width: 50px; }
+.llm-call-header .call-schema { color: var(--cyan); }
+.llm-call-header .call-duration { color: var(--green); margin-left: auto; }
+.llm-call-body {
+  display: none;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+.llm-call-body.open { display: block; }
+.llm-call-body pre {
+  background: var(--bg);
+  color: var(--gray);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 8px;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 8px;
+}
+.llm-call-body .label { color: var(--dim); font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+
+/* Empty state */
+.no-data { color: var(--dim); font-style: italic; padding: 20px; text-align: center; }
+
+/* ── Metrics bar ──────────────────────────────────────────────────── */
+.metrics-bar {
+  display: flex;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+.metric .m-val { color: var(--gold); font-weight: 700; font-size: 16px; }
+.metric .m-label { color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── Delete button ────────────────────────────────────────────────── */
+.job-item { position: relative; }
+.job-item .delete-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: none;
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+.job-item:hover .delete-btn { opacity: 1; }
+.job-item .delete-btn:hover { color: var(--red); background: rgba(239,83,80,0.15); }
+
+/* ── Token pill in LLM header ─────────────────────────────────────── */
+.call-tokens {
+  font-size: 10px;
+  color: var(--dim);
+  background: var(--bg3);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+/* ── JSON syntax in pre blocks ────────────────────────────────────── */
+pre .json-key { color: var(--cyan); }
+pre .json-str { color: var(--green); }
+pre .json-num { color: var(--orange); }
+pre .json-bool { color: var(--gold); }
+pre .json-null { color: var(--dim); }
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Tab Navigation ───────────────────────────────────────────────── */
+.tab-nav {
+  display: flex;
+  gap: 2px;
+  margin-left: 24px;
+  margin-right: 16px;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn:hover { color: var(--white); background: var(--bg3); }
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: var(--bg3); }
+
+/* View switching */
+.view-jobs .analytics-view { display: none !important; }
+.view-analytics .jobs-view { display: none !important; }
+
+/* ── Analytics Page ───────────────────────────────────────────────── */
+.analytics-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+.analytics-panel h3 {
+  color: var(--gold);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.kpi-card .kpi-val {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.2;
+}
+.kpi-card .kpi-sub {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 2px;
+}
+.kpi-card .kpi-label {
+  font-size: 11px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+}
+.kpi-card.success .kpi-val { color: var(--green); }
+.kpi-card.danger .kpi-val { color: var(--red); }
+.kpi-card.info .kpi-val { color: var(--blue); }
+.kpi-card.cost .kpi-val { color: var(--cyan); }
+
+/* Analytics tables */
+.a-table-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.a-table-title {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.a-table-title .filter-group {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+}
+.a-table-title .filter-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  padding: 2px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: var(--font);
+  transition: all 0.15s;
+}
+.a-table-title .filter-btn:hover { color: var(--white); border-color: var(--gray); }
+.a-table-title .filter-btn.active { color: var(--gold); border-color: var(--gold); background: rgba(255,193,7,0.1); }
+
+table.a-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+table.a-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: var(--dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+table.a-table th:hover { color: var(--white); }
+table.a-table th .sort-arrow { font-size: 9px; margin-left: 2px; color: var(--gold); }
+table.a-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #1E293B;
+  color: var(--white);
+  white-space: nowrap;
+}
+table.a-table tr:hover { background: var(--bg3); }
+table.a-table tr.clickable { cursor: pointer; }
+table.a-table .goal-cell {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+table.a-table .repo-cell {
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.a-table-empty { padding: 20px; color: var(--dim); text-align: center; font-style: italic; }
+
+/* Two-column layout for smaller sections */
+.analytics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (max-width: 1100px) { .analytics-row { grid-template-columns: 1fr; } }
+
+/* Cost highlight */
+.cost-val { color: var(--cyan); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#x1F41D; HiveShip</h1>
+  <span class="subtitle">Observability Dashboard</span>
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchView('jobs')">Jobs</button>
+    <button class="tab-btn" onclick="switchView('analytics')">Analytics</button>
+  </nav>
+  <div class="stats">
+    <div><span class="stat-val" id="stat-total">0</span><br><span class="stat-label">Jobs</span></div>
+    <div><span class="stat-val" id="stat-rate">—</span><br><span class="stat-label">Success</span></div>
+    <div><span class="stat-val" id="stat-failed">0</span><br><span class="stat-label">Failed</span></div>
+    <div><span class="stat-val" id="stat-dur">—</span><br><span class="stat-label">Avg Duration</span></div>
+    <div><span class="stat-val" id="stat-llm">0</span><br><span class="stat-label">LLM Calls</span></div>
+    <div><span class="stat-val" id="stat-tokens">0</span><br><span class="stat-label">Tokens</span></div>
+    <div><span class="stat-val" id="stat-llm-lat">—</span><br><span class="stat-label">Avg LLM</span></div>
+  </div>
+</header>
+
+<div class="container view-jobs" id="app-container">
+  <!-- ── Jobs View ──────────────────────────────────────────────────── -->
+  <div class="sidebar jobs-view">
+    <h2>Jobs</h2>
+    <div class="job-list" id="job-list"></div>
+  </div>
+  <div class="main empty jobs-view" id="main-panel">
+    Select a job from the left, or trigger a pipeline to see data here.
+  </div>
+
+  <!-- ── Analytics View ─────────────────────────────────────────────── -->
+  <div class="analytics-panel analytics-view" id="analytics-panel">
+    Loading analytics...
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let selectedJobId = null;
+let jobsData = [];
+let telemetryData = [];
+const expandedCallIds = new Set();   // track which LLM calls are expanded
+let lastDetailHash = '';              // change-detection for detail panel
+let lastTelemetryLen = 0;             // change-detection for telemetry
+let currentView = 'jobs';             // 'jobs' | 'analytics'
+let analyticsData = null;             // cached analytics payload
+let analyticsSort = { col: 'created_at', dir: 'desc' }; // history table sort
+let analyticsFilter = { status: 'all', type: 'all', repo: 'all', range: 'all' };
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fmtTime(ms) {
+  if (!ms || ms <= 0) return '—';
+  if (ms < 1000) return ms + 'ms';
+  if (ms < 60000) return (ms / 1000).toFixed(1) + 's';
+  return (ms / 60000).toFixed(1) + 'm';
+}
+
+function fmtTimestamp(epoch) {
+  if (!epoch) return '';
+  const d = new Date(epoch);
+  return d.toLocaleTimeString();
+}
+
+function fmtTokens(n) {
+  if (!n) return '0';
+  if (n < 1000) return String(n);
+  return (n / 1000).toFixed(1) + 'k';
+}
+
+function truncate(s, n) {
+  if (!s) return '';
+  return s.length > n ? s.slice(0, n) + '…' : s;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── JSON detection & pretty-printing ─────────────────────────────────────────
+function formatContent(raw) {
+  if (!raw) return '';
+  // Replace literal \n with actual newlines
+  let s = raw.replace(/\\n/g, '\n');
+  // Try to detect and pretty-print JSON
+  const trimmed = s.trim();
+  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+      (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+    try {
+      const obj = JSON.parse(trimmed);
+      const pretty = JSON.stringify(obj, null, 2);
+      return syntaxHighlight(pretty);
+    } catch (e) { /* not valid JSON, fall through */ }
+  }
+  return escHtml(s);
+}
+
+function syntaxHighlight(json) {
+  const escaped = escHtml(json);
+  return escaped.replace(
+    /("(?:[^"\\]|\\.)*")\s*:/g,
+    '<span class="json-key">$1</span>:'
+  ).replace(
+    /:\s*("(?:[^"\\]|\\.)*")/g,
+    ': <span class="json-str">$1</span>'
+  ).replace(
+    /:\s*(\d+\.?\d*)/g,
+    ': <span class="json-num">$1</span>'
+  ).replace(
+    /:\s*(true|false)/g,
+    ': <span class="json-bool">$1</span>'
+  ).replace(
+    /:\s*(null)/g,
+    ': <span class="json-null">$1</span>'
+  );
+}
+
+// ── Pipeline step mapping ────────────────────────────────────────────────────
+const PIPELINE_STEPS = [
+  { key: 'cloning', label: 'Clone' },
+  { key: 'planning', label: 'Plan' },
+  { key: 'running', label: 'Build' },
+  { key: 'generating delivery', label: 'Merge' },
+  { key: 'self-review', label: 'Review' },
+  { key: 'review fix', label: 'Fix' },
+  { key: 'pushing', label: 'Push' },
+  { key: 'done', label: 'Done' },
+];
+
+function getPipelineState(job) {
+  const step = (job.current_step || '').toLowerCase();
+  const status = job.status;
+  let activeIdx = -1;
+
+  for (let i = PIPELINE_STEPS.length - 1; i >= 0; i--) {
+    if (step.includes(PIPELINE_STEPS[i].key)) {
+      activeIdx = i;
+      break;
+    }
+  }
+
+  return PIPELINE_STEPS.map((s, i) => {
+    if (status === 'complete') return 'done';
+    if (status === 'failed' && i === activeIdx) return 'error';
+    if (status === 'failed' && i < activeIdx) return 'done';
+    if (i < activeIdx) return 'done';
+    if (i === activeIdx) return 'active';
+    return '';
+  });
+}
+
+// ── Render: Job list ─────────────────────────────────────────────────────────
+function renderJobList(jobs) {
+  const el = document.getElementById('job-list');
+  if (!jobs.length) {
+    el.innerHTML = '<div class="no-data">No jobs yet. Start a pipeline!</div>';
+    return;
+  }
+  // Separate parent jobs and revision children
+  const parents = jobs.filter(j => !j.parent_job_id);
+  const childMap = {};
+  for (const j of jobs) {
+    if (j.parent_job_id) {
+      if (!childMap[j.parent_job_id]) childMap[j.parent_job_id] = [];
+      childMap[j.parent_job_id].push(j);
+    }
+  }
+  // Build ordered list: parent followed by its children
+  const ordered = [];
+  for (const p of parents) {
+    ordered.push(p);
+    if (childMap[p.job_id]) {
+      ordered.push(...childMap[p.job_id]);
+    }
+  }
+  el.innerHTML = ordered.map(j => {
+    const active = j.job_id === selectedJobId ? 'active' : '';
+    const isRevision = j.parent_job_id || (j.job_type === 'revision');
+    const childCls = isRevision ? 'revision-child' : '';
+    const typeBadge = isRevision
+      ? '<span class="badge type-rev">Revision</span>'
+      : '<span class="badge type-gen">Generation</span>';
+    const dur = j.duration_ms ? fmtTime(j.duration_ms) : '—';
+    const prBit = j.pr_number ? ` · PR #${j.pr_number}` : '';
+    return `
+      <div class="job-item ${active} ${childCls}" onclick="selectJob('${j.job_id}')">
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteJob('${j.job_id}')" title="Delete job">✕</button>
+        <div class="goal">${truncate(j.goal, 55)}</div>
+        <div class="meta">
+          ${typeBadge}
+          <span class="badge ${j.status}">${j.status}</span>
+          <span>${j.agent_count || 0} agents</span>
+          <span>${dur}${prBit}</span>
+          <span>${fmtTimestamp(j.started_at)}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Delete job ───────────────────────────────────────────────────────────────
+async function deleteJob(jobId) {
+  if (!confirm('Delete job ' + jobId.slice(0,8) + '…?')) return;
+  try {
+    await fetch('/api/jobs/' + jobId, { method: 'DELETE' });
+  } catch (e) { /* ignore */ }
+  jobsData = jobsData.filter(j => j.job_id !== jobId);
+  if (selectedJobId === jobId) {
+    selectedJobId = null;
+    document.getElementById('main-panel').className = 'main empty jobs-view';
+    document.getElementById('main-panel').innerHTML = 'Select a job from the left.';
+  }
+  renderJobList(jobsData);
+}
+
+// ── Render: Job detail ───────────────────────────────────────────────────────
+function renderJobDetail(job) {
+  const panel = document.getElementById('main-panel');
+  panel.className = 'main jobs-view';
+
+  const events = job.events || [];
+  const agentStates = job.agent_states || {};
+  const pipeState = getPipelineState(job);
+
+  // Duration
+  const firstT = events.length ? events[0].t : 0;
+  const lastT = events.length ? events[events.length - 1].t : 0;
+  const dur = firstT ? lastT - firstT : 0;
+
+  // Build agent timeline data
+  const agentTimeline = buildAgentTimeline(events, agentStates, firstT, lastT);
+
+  // LLM calls (from telemetry, which now includes token data from DB)
+  const llmCalls = buildLLMCalls();
+
+  // Per-job LLM metrics
+  const totalPromptTok = llmCalls.reduce((s, c) => s + (c.prompt_tokens || 0), 0);
+  const totalRespTok = llmCalls.reduce((s, c) => s + (c.response_tokens || 0), 0);
+  const totalLlmTime = llmCalls.reduce((s, c) => s + (c.duration_ms || 0), 0);
+
+  const isRevision = job.job_type === 'revision' || job.parent_job_id;
+  const typeBadge = isRevision
+    ? '<span class="badge type-rev" style="margin-right:8px">Revision</span>'
+    : '<span class="badge type-gen" style="margin-right:8px">Generation</span>';
+  const prLink = job.pr_url
+    ? `<a class="pr-link" href="${job.pr_url}" target="_blank">&#x1F517; PR #${job.pr_number || ''}</a>`
+    : '';
+  const parentLink = job.parent_job_id
+    ? `<span style="font-size:12px;color:var(--dim);margin-left:8px">Parent: <a href="#" onclick="selectJob('${job.parent_job_id}');return false">${job.parent_job_id.slice(0,8)}…</a></span>`
+    : '';
+  // Extract repo for analytics link
+  const _repoMatch = (job.pr_url || '').replace('https://','').replace('http://','').split('/');
+  const _repoName = _repoMatch.length >= 3 ? _repoMatch[1] + '/' + _repoMatch[2] : '';
+  const repoLink = _repoName
+    ? `<a href="#" onclick="navToRepoAnalytics('${_repoName}');return false" style="font-size:11px;color:var(--cyan);margin-left:8px">📊 Repo Analytics</a>`
+    : '';
+
+  panel.innerHTML = `
+    <div class="detail-header">
+      <h2>${typeBadge}${job.job_id}</h2>
+      <div class="goal-text">${job.goal || ''}</div>
+      <div style="margin-top:4px;font-size:12px;color:var(--dim)">
+        Duration: ${fmtTime(dur)} · Status: <span class="badge ${job.status}">${job.status}</span>
+        ${prLink}${parentLink}${repoLink}
+        ${job.error ? `<span style="color:var(--red);margin-left:8px">${truncate(job.error, 120)}</span>` : ''}
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="pipeline">
+      ${PIPELINE_STEPS.map((s, i) =>
+        `<div class="step ${pipeState[i]}">${s.label}</div>`
+      ).join('<div style="color:var(--dim);line-height:36px">→</div>')}
+    </div>
+
+    <!-- Per-job metrics -->
+    <div class="metrics-bar">
+      <div class="metric"><span class="m-val">${llmCalls.length}</span><span class="m-label">LLM Calls</span></div>
+      <div class="metric"><span class="m-val">${fmtTokens(totalPromptTok)}</span><span class="m-label">Prompt Tok</span></div>
+      <div class="metric"><span class="m-val">${fmtTokens(totalRespTok)}</span><span class="m-label">Response Tok</span></div>
+      <div class="metric"><span class="m-val">${fmtTokens(totalPromptTok + totalRespTok)}</span><span class="m-label">Total Tok</span></div>
+      <div class="metric"><span class="m-val">${fmtTime(totalLlmTime)}</span><span class="m-label">LLM Time</span></div>
+      <div class="metric"><span class="m-val">${Object.keys(agentStates).length}</span><span class="m-label">Agents</span></div>
+      <div class="metric"><span class="m-val">${fmtTime(dur)}</span><span class="m-label">Wall Time</span></div>
+    </div>
+
+    <!-- Agent States -->
+    <div class="section">
+      <div class="section-title">Agents</div>
+      <div class="agent-grid">
+        ${Object.entries(agentStates).map(([name, state]) => {
+          const at = agentTimeline.find(a => a.name === name);
+          const agentDur = at ? fmtTime(at.end - at.start) : '';
+          return `<div class="agent-card ${state}">
+            <div class="name">${name}</div>
+            <div style="color:var(--dim);font-size:11px">${state}${agentDur ? ' · ' + agentDur : ''}</div>
+          </div>`;
+        }).join('')}
+        ${Object.keys(agentStates).length === 0 ? '<div class="no-data">No agents yet</div>' : ''}
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="section">
+      <div class="section-title">Timeline</div>
+      <div class="timeline-container">
+        ${agentTimeline.length ? agentTimeline.map(a => {
+          const totalSpan = (lastT - firstT) || 1;
+          const left = ((a.start - firstT) / totalSpan * 100).toFixed(1);
+          const width = Math.max(((a.end - a.start) / totalSpan * 100), 0.5).toFixed(1);
+          return `<div class="timeline-row">
+            <div class="timeline-label">${a.name}</div>
+            <div class="timeline-track">
+              <div class="timeline-bar ${a.state}" style="left:${left}%;width:${width}%"
+                title="${a.name}: ${fmtTime(a.end - a.start)}">${fmtTime(a.end - a.start)}</div>
+            </div>
+          </div>`;
+        }).join('') : '<div class="no-data">No timeline data</div>'}
+      </div>
+    </div>
+
+    <!-- LLM Calls -->
+    <div class="section">
+      <div class="section-title">LLM Calls (${llmCalls.length})</div>
+      <div class="llm-log">
+        ${llmCalls.length ? llmCalls.map(c => `
+          <div class="llm-call">
+            <div class="llm-call-header" onclick="toggleLLM(${c.call_id})">
+              <span class="call-id">#${c.call_id}</span>
+              <span class="call-schema">${c.schema || 'text'}</span>
+              <span class="call-tokens">${fmtTokens(c.prompt_tokens || 0)}→${fmtTokens(c.response_tokens || 0)} tok</span>
+              <span style="color:var(--gray);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${truncate(c.prompt, 60)}</span>
+              <span class="call-duration">${c.duration_ms ? fmtTime(c.duration_ms) : '⏳'}</span>
+            </div>
+            <div class="llm-call-body" id="llm-body-${c.call_id}">
+              <div class="label">Prompt</div>
+              <pre>${formatContent(c.prompt || '')}</pre>
+              <div class="label">System</div>
+              <pre>${formatContent(c.system || '')}</pre>
+              <div class="label">Response</div>
+              <pre>${formatContent(c.response || '')}</pre>
+            </div>
+          </div>
+        `).join('') : '<div class="no-data">No LLM calls recorded (start the Mock LLM server)</div>'}
+      </div>
+    </div>
+
+    <!-- Event Log -->
+    <div class="section">
+      <div class="section-title">Event Log (${events.length})</div>
+      <div class="event-log">
+        ${events.map(ev => {
+          const detail = ev.agent ? ev.agent : '';
+          const extra = ev.error ? ` — ${truncate(ev.error, 80)}` : '';
+          const fc = ev.failure_class ? ` [${ev.failure_class}]` : '';
+          return `<div class="event-row">
+            <span class="ev-time">${fmtTimestamp(ev.t)}</span>
+            <span class="ev-type ${ev.type}">${ev.type}</span>
+            <span class="ev-detail">${detail}${fc}${extra}</span>
+          </div>`;
+        }).join('')}
+        ${events.length === 0 ? '<div class="no-data">No events</div>' : ''}
+      </div>
+    </div>
+  `;
+
+  // Restore expanded state for LLM call rows
+  for (const cid of expandedCallIds) {
+    const el = document.getElementById('llm-body-' + cid);
+    if (el) el.classList.add('open');
+  }
+}
+
+// ── Toggle LLM call expand/collapse (by call_id, not index) ──────────────────
+function toggleLLM(callId) {
+  if (expandedCallIds.has(callId)) {
+    expandedCallIds.delete(callId);
+  } else {
+    expandedCallIds.add(callId);
+  }
+  const el = document.getElementById('llm-body-' + callId);
+  if (el) el.classList.toggle('open');
+}
+
+// ── Build agent timeline from events ─────────────────────────────────────────
+function buildAgentTimeline(events, agentStates, firstT, lastT) {
+  const agents = {};
+  for (const ev of events) {
+    if (!ev.agent) continue;
+    if (!agents[ev.agent]) agents[ev.agent] = { name: ev.agent, start: ev.t, end: ev.t, state: 'pending' };
+    if (ev.type === 'agent_started') {
+      agents[ev.agent].start = ev.t;
+      agents[ev.agent].state = 'running';
+    }
+    if (ev.type === 'agent_done') {
+      agents[ev.agent].end = ev.t;
+      agents[ev.agent].state = 'completed';
+    }
+    if (ev.type === 'agent_failed') {
+      agents[ev.agent].end = ev.t;
+      agents[ev.agent].state = 'failed';
+    }
+    if (ev.type === 'agent_pruned') {
+      agents[ev.agent].end = ev.t;
+      agents[ev.agent].state = 'pruned';
+    }
+  }
+  for (const [name, state] of Object.entries(agentStates)) {
+    if (!agents[name]) {
+      agents[name] = { name, start: firstT, end: lastT || firstT + 1, state };
+    } else if (agents[name].state === 'pending' || agents[name].state === 'running') {
+      agents[name].state = state;
+      if (state === 'completed' || state === 'failed' || state === 'pruned') {
+        agents[name].end = lastT;
+      }
+    }
+  }
+  return Object.values(agents).sort((a, b) => a.start - b.start);
+}
+
+// ── Build LLM call list from telemetry data ──────────────────────────────────
+function buildLLMCalls() {
+  // telemetryData now comes from DB (flat list with all fields)
+  // or from old telemetry.jsonl (request/response pairs)
+  const calls = {};
+  for (const r of telemetryData) {
+    // DB format: flat records with call_id, prompt, response, duration_ms, etc.
+    if (r.call_id !== undefined && !r.type) {
+      calls[r.call_id] = {
+        call_id: r.call_id,
+        prompt: r.prompt || '',
+        system: r.system || '',
+        schema: r.schema || '',
+        response: r.response || '',
+        duration_ms: r.duration_ms,
+        prompt_tokens: r.prompt_tokens || 0,
+        response_tokens: r.response_tokens || 0,
+      };
+      continue;
+    }
+    // Legacy telemetry.jsonl format: separate request/response records
+    if (r.type === 'llm_request') {
+      calls[r.call_id] = {
+        call_id: r.call_id,
+        prompt: r.prompt || '',
+        system: r.system || '',
+        schema: r.schema || '',
+        response: '',
+        duration_ms: null,
+        prompt_tokens: 0,
+        response_tokens: 0,
+      };
+    }
+    if (r.type === 'llm_response' && calls[r.call_id]) {
+      calls[r.call_id].response = r.response || '';
+      calls[r.call_id].duration_ms = r.duration_ms;
+    }
+  }
+  return Object.values(calls).sort((a, b) => a.call_id - b.call_id);
+}
+
+// ── Select job ───────────────────────────────────────────────────────────────
+async function selectJob(jobId) {
+  selectedJobId = jobId;
+  renderJobList(jobsData);
+  try {
+    const resp = await fetch('/api/jobs/' + jobId);
+    if (!resp.ok) throw new Error('Not found');
+    const job = await resp.json();
+    renderJobDetail(job);
+  } catch (e) {
+    document.getElementById('main-panel').innerHTML =
+      '<div class="no-data">Failed to load job: ' + e.message + '</div>';
+  }
+}
+
+// ── Compute a lightweight hash for change detection ──────────────────────────
+function jobHash(job) {
+  if (!job) return '';
+  const events = job.events || [];
+  return job.status + ':' + events.length + ':' +
+    Object.values(job.agent_states || {}).join(',') + ':' + telemetryData.length;
+}
+
+// ── View Switching ───────────────────────────────────────────────────────────
+function switchView(view) {
+  currentView = view;
+  const container = document.getElementById('app-container');
+  container.className = 'container view-' + view;
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === view);
+  });
+  if (view === 'analytics') fetchAndRenderAnalytics();
+}
+
+// Navigate from analytics to a specific job in the Jobs view
+function navToJob(jobId) {
+  switchView('jobs');
+  selectJob(jobId);
+}
+
+// Navigate from job detail to analytics filtered by repo
+function navToRepoAnalytics(repo) {
+  analyticsFilter = { status: 'all', type: 'all', repo: repo, range: 'all' };
+  switchView('analytics');
+}
+
+// ── Analytics: Fetch & Render ────────────────────────────────────────────────
+async function fetchAndRenderAnalytics() {
+  try {
+    const resp = await fetch('/api/analytics');
+    if (!resp.ok) return;
+    analyticsData = await resp.json();
+    renderAnalytics(analyticsData);
+  } catch (e) { /* silent */ }
+}
+
+function renderAnalytics(data) {
+  const panel = document.getElementById('analytics-panel');
+  if (!data || data.error) {
+    panel.innerHTML = '<div class="a-table-empty">Analytics unavailable</div>';
+    return;
+  }
+  const k = data.kpis;
+  const successCls = k.success_rate >= 90 ? 'success' : k.success_rate >= 70 ? '' : 'danger';
+
+  // Format cost
+  function fmtCost(v) { return '$' + v.toFixed(4); }
+
+  panel.innerHTML = `
+    <!-- KPI Cards -->
+    <h3>Overview</h3>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-val">${k.total_jobs}</div>
+        <div class="kpi-sub">${k.gen_count} gen · ${k.rev_count} rev</div>
+        <div class="kpi-label">Total Jobs</div>
+      </div>
+      <div class="kpi-card ${successCls}">
+        <div class="kpi-val">${k.success_rate}%</div>
+        <div class="kpi-sub">${k.completed} of ${k.total_jobs}</div>
+        <div class="kpi-label">Success Rate</div>
+      </div>
+      <div class="kpi-card info">
+        <div class="kpi-val">${fmtTime(k.avg_duration_gen_ms)}</div>
+        <div class="kpi-sub">Rev: ${fmtTime(k.avg_duration_rev_ms)}</div>
+        <div class="kpi-label">Avg Duration</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">${fmtTokens(k.total_tokens)}</div>
+        <div class="kpi-sub">${fmtTokens(k.total_prompt_tokens)} in · ${fmtTokens(k.total_response_tokens)} out</div>
+        <div class="kpi-label">Total Tokens</div>
+      </div>
+      <div class="kpi-card cost">
+        <div class="kpi-val">${fmtCost(k.total_cost_usd)}</div>
+        <div class="kpi-sub">Gemini 3.1 Pro · $2/$12 per 1M</div>
+        <div class="kpi-label">Estimated Cost</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">${k.revision_rate}%</div>
+        <div class="kpi-sub">${k.active} active now</div>
+        <div class="kpi-label">Revision Rate</div>
+      </div>
+    </div>
+
+    <!-- Job History Table -->
+    <div class="a-table-wrap" id="history-section">
+      <div class="a-table-title">
+        Job History
+        <div class="filter-group">
+          <button class="filter-btn ${analyticsFilter.type==='all'?'active':''}" onclick="setHistoryFilter('type','all')">All</button>
+          <button class="filter-btn ${analyticsFilter.type==='generation'?'active':''}" onclick="setHistoryFilter('type','generation')">Gen</button>
+          <button class="filter-btn ${analyticsFilter.type==='revision'?'active':''}" onclick="setHistoryFilter('type','revision')">Rev</button>
+          <span style="color:var(--border)">|</span>
+          <button class="filter-btn ${analyticsFilter.status==='all'?'active':''}" onclick="setHistoryFilter('status','all')">All</button>
+          <button class="filter-btn ${analyticsFilter.status==='complete'?'active':''}" onclick="setHistoryFilter('status','complete')">✓</button>
+          <button class="filter-btn ${analyticsFilter.status==='failed'?'active':''}" onclick="setHistoryFilter('status','failed')">✗</button>
+          <span style="color:var(--border)">|</span>
+          <button class="filter-btn ${analyticsFilter.range==='all'?'active':''}" onclick="setHistoryFilter('range','all')">All Time</button>
+          <button class="filter-btn ${analyticsFilter.range==='24h'?'active':''}" onclick="setHistoryFilter('range','24h')">24h</button>
+          <button class="filter-btn ${analyticsFilter.range==='7d'?'active':''}" onclick="setHistoryFilter('range','7d')">7d</button>
+          <button class="filter-btn ${analyticsFilter.range==='30d'?'active':''}" onclick="setHistoryFilter('range','30d')">30d</button>
+        </div>
+      </div>
+      <div id="history-table-body"></div>
+    </div>
+
+    <!-- Two-column: Failure Analysis + LLM Performance -->
+    <div class="analytics-row">
+      <div class="a-table-wrap">
+        <div class="a-table-title">Failure Analysis</div>
+        ${renderFailureTable(data)}
+      </div>
+      <div class="a-table-wrap">
+        <div class="a-table-title">LLM Performance by Schema</div>
+        ${renderLLMTable(data)}
+      </div>
+    </div>
+
+    <!-- Repository Activity -->
+    <div class="a-table-wrap">
+      <div class="a-table-title">Repository Activity</div>
+      ${renderRepoTable(data)}
+    </div>
+  `;
+
+  // Render the history table (separate so filters can re-render it)
+  renderHistoryTable(data);
+}
+
+// ── History Table with sort + filter ─────────────────────────────────────────
+function renderHistoryTable(data) {
+  const el = document.getElementById('history-table-body');
+  if (!el) return;
+
+  let rows = [...data.history];
+
+  // Apply filters
+  if (analyticsFilter.type !== 'all') rows = rows.filter(r => r.job_type === analyticsFilter.type);
+  if (analyticsFilter.status !== 'all') rows = rows.filter(r => r.status === analyticsFilter.status);
+  if (analyticsFilter.repo !== 'all') rows = rows.filter(r => r.repo === analyticsFilter.repo);
+  if (analyticsFilter.range !== 'all') {
+    const now = Date.now();
+    const ranges = { '24h': 86400000, '7d': 604800000, '30d': 2592000000 };
+    const cutoff = now - (ranges[analyticsFilter.range] || 0);
+    rows = rows.filter(r => r.created_at >= cutoff);
+  }
+
+  // Sort
+  const col = analyticsSort.col;
+  const dir = analyticsSort.dir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => {
+    let va = a[col], vb = b[col];
+    if (typeof va === 'string') return va.localeCompare(vb) * dir;
+    return ((va || 0) - (vb || 0)) * dir;
+  });
+
+  function sortArrow(c) {
+    return analyticsSort.col === c ? `<span class="sort-arrow">${analyticsSort.dir==='asc'?'▲':'▼'}</span>` : '';
+  }
+
+  if (!rows.length) {
+    el.innerHTML = '<div class="a-table-empty">No jobs match the current filters</div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <table class="a-table">
+      <thead><tr>
+        <th onclick="sortHistory('created_at')">Time ${sortArrow('created_at')}</th>
+        <th onclick="sortHistory('job_id')">ID ${sortArrow('job_id')}</th>
+        <th onclick="sortHistory('job_type')">Type ${sortArrow('job_type')}</th>
+        <th onclick="sortHistory('repo')">Repo ${sortArrow('repo')}</th>
+        <th onclick="sortHistory('goal')">Goal ${sortArrow('goal')}</th>
+        <th onclick="sortHistory('status')">Status ${sortArrow('status')}</th>
+        <th onclick="sortHistory('duration_ms')">Duration ${sortArrow('duration_ms')}</th>
+        <th onclick="sortHistory('llm_calls')">LLM ${sortArrow('llm_calls')}</th>
+        <th onclick="sortHistory('tokens')">Tokens ${sortArrow('tokens')}</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr class="clickable" onclick="navToJob('${r.job_id}')">
+            <td>${fmtTimestamp(r.created_at)}</td>
+            <td style="font-family:var(--mono);font-size:11px;color:var(--gold)">${r.job_id.slice(0,8)}…</td>
+            <td><span class="badge ${r.job_type==='revision'?'type-rev':'type-gen'}">${r.job_type==='revision'?'Rev':'Gen'}</span></td>
+            <td class="repo-cell">${r.repo !== 'unknown' ? r.repo : '—'}</td>
+            <td class="goal-cell" title="${escHtml(r.goal || '')}">${truncate(r.goal, 40)}</td>
+            <td><span class="badge ${r.status}">${r.status}</span></td>
+            <td>${fmtTime(r.duration_ms)}</td>
+            <td>${r.llm_calls}</td>
+            <td>${fmtTokens(r.tokens)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function sortHistory(col) {
+  if (analyticsSort.col === col) {
+    analyticsSort.dir = analyticsSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    analyticsSort.col = col;
+    analyticsSort.dir = col === 'created_at' ? 'desc' : 'asc';
+  }
+  if (analyticsData) renderHistoryTable(analyticsData);
+}
+
+function setHistoryFilter(key, val) {
+  analyticsFilter[key] = val;
+  if (analyticsData) renderAnalytics(analyticsData);
+}
+
+// ── Failure Analysis Table ───────────────────────────────────────────────────
+function renderFailureTable(data) {
+  if (!data.failure_by_class.length && !data.failure_by_stage.length) {
+    return '<div class="a-table-empty">No failures recorded</div>';
+  }
+  let html = '';
+  if (data.failure_by_class.length) {
+    html += `<table class="a-table">
+      <thead><tr><th>Failure Class</th><th>Count</th></tr></thead>
+      <tbody>${data.failure_by_class.map(r => `
+        <tr><td style="color:var(--red)">${r.class}</td><td>${r.count}</td></tr>
+      `).join('')}</tbody>
+    </table>`;
+  }
+  if (data.failure_by_stage.length) {
+    html += `<div style="border-top:1px solid var(--border)"></div>
+    <table class="a-table">
+      <thead><tr><th>Failed at Stage</th><th>Count</th></tr></thead>
+      <tbody>${data.failure_by_stage.map(r => `
+        <tr><td style="color:var(--orange)">${r.stage}</td><td>${r.count}</td></tr>
+      `).join('')}</tbody>
+    </table>`;
+  }
+  return html;
+}
+
+// ── LLM Performance Table ────────────────────────────────────────────────────
+function renderLLMTable(data) {
+  if (!data.llm_by_schema.length) {
+    return '<div class="a-table-empty">No LLM calls recorded</div>';
+  }
+  return `<table class="a-table">
+    <thead><tr>
+      <th>Schema</th><th>Calls</th><th>Avg Latency</th>
+      <th>Input Tok</th><th>Output Tok</th><th>Cost</th>
+    </tr></thead>
+    <tbody>${data.llm_by_schema.map(r => `
+      <tr>
+        <td style="color:var(--cyan);font-family:var(--mono);font-size:11px">${r.schema}</td>
+        <td>${r.calls}</td>
+        <td>${fmtTime(r.avg_duration_ms)}</td>
+        <td>${fmtTokens(r.prompt_tokens)}</td>
+        <td>${fmtTokens(r.response_tokens)}</td>
+        <td class="cost-val">$${r.cost_usd.toFixed(4)}</td>
+      </tr>
+    `).join('')}</tbody>
+  </table>`;
+}
+
+// ── Repository Activity Table ────────────────────────────────────────────────
+function renderRepoTable(data) {
+  if (!data.repos.length) {
+    return '<div class="a-table-empty">No repository data</div>';
+  }
+  return `<table class="a-table">
+    <thead><tr>
+      <th>Repository</th><th>Jobs</th><th>Success</th>
+      <th>Failed</th><th>Tokens</th><th>Last Activity</th>
+    </tr></thead>
+    <tbody>${data.repos.map(r => `
+      <tr class="clickable" onclick="setHistoryFilter('repo','${escHtml(r.repo)}')">
+        <td class="repo-cell">${r.repo}</td>
+        <td>${r.total_jobs}</td>
+        <td style="color:var(--green)">${r.success_rate}%</td>
+        <td style="color:${r.failed?'var(--red)':'var(--dim)'}">${r.failed}</td>
+        <td>${fmtTokens(r.tokens)}</td>
+        <td>${fmtTimestamp(r.last_activity)}</td>
+      </tr>
+    `).join('')}</tbody>
+  </table>`;
+}
+
+// ── Polling loop ─────────────────────────────────────────────────────────────
+async function poll() {
+  try {
+    // Fetch jobs
+    const jResp = await fetch('/api/jobs');
+    if (jResp.ok) {
+      jobsData = await jResp.json();
+      renderJobList(jobsData);
+      // Auto-select first job if none selected
+      if (!selectedJobId && jobsData.length) {
+        selectJob(jobsData[0].job_id);
+      }
+    }
+
+    // Fetch telemetry
+    const tResp = await fetch('/api/telemetry');
+    if (tResp.ok) {
+      telemetryData = await tResp.json();
+    }
+
+    // Re-render detail only if data changed
+    if (selectedJobId) {
+      const sel = jobsData.find(j => j.job_id === selectedJobId);
+      if (sel) {
+        const jResp2 = await fetch('/api/jobs/' + selectedJobId);
+        if (jResp2.ok) {
+          const job = await jResp2.json();
+          const h = jobHash(job);
+          if (h !== lastDetailHash) {
+            lastDetailHash = h;
+            renderJobDetail(job);
+          }
+        }
+      }
+    }
+
+    // Fetch stats
+    const sResp = await fetch('/api/stats');
+    if (sResp.ok) {
+      const stats = await sResp.json();
+      document.getElementById('stat-total').textContent = stats.total_jobs;
+      document.getElementById('stat-rate').textContent = stats.success_rate + '%';
+      document.getElementById('stat-failed').textContent = stats.failed || 0;
+      document.getElementById('stat-dur').textContent = fmtTime(stats.avg_duration_ms);
+      document.getElementById('stat-llm').textContent = stats.total_llm_calls;
+      document.getElementById('stat-tokens').textContent = fmtTokens(stats.total_tokens || 0);
+      document.getElementById('stat-llm-lat').textContent = fmtTime(stats.avg_llm_duration_ms || 0);
+    }
+  } catch (e) {
+    // Dashboard server or HiveShip not reachable — silent
+  }
+}
+
+// Start polling
+poll();
+setInterval(poll, 3000);
+// Analytics polls on slower interval
+setInterval(() => { if (currentView === 'analytics') fetchAndRenderAnalytics(); }, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "additionalProperties": false,
+  "definitions": {
+    "miscSegment": {
+      "additionalProperties": false,
+      "goType": "MiscSegment",
+      "properties": {
+        "date": {
+          "$ref": "shared.json#/definitions/date",
+          "dataClassification": []
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": []
+        },
+        "locationCode": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "quantity": {
+          "dataClassification": [],
+          "type": "integer"
+        },
+        "segmentId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "Actual booking segment for which this misc segment was created."
+        },
+        "segmentNumber": {
+          "dataClassification": [],
+          "description": "Segment number as represented in GDS.",
+          "type": "integer"
+        },
+        "status": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "text": {
+          "dataClassification": [],
+          "description": "Misc segment query data written to GDS",
+          "type": "string"
+        },
+        "type": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "vendorCode": {
+          "dataClassification": [],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "segmentNumber",
+        "text"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.misc.Segment"
+    }
+  },
+  "goType": "MiscBookingData",
+  "id": "booking-data-misc.json",
+  "properties": {
+    "segments": {
+      "dataClassification": [],
+      "items": {
+        "$ref": "#/definitions/miscSegment"
+      },
+      "type": "array"
+    }
+  },
+  "title": "Miscelaneous segments booking data",
+  "type": "object",
+  "x-java-type": "com.concur.t2.schema.itinerary.MiscData"
+}

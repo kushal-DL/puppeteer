@@ -1,0 +1,1352 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "additionalProperties": false,
+  "definitions": {
+    "bookingState": {
+      "dataClassification": [],
+      "description": "TICKETED - Ready to travel, all ticket assets are available for download; CANCELED - The booking has been canceled by the customer or the travel operator; INITIATED - The booking process has been initiated, but payment has not yet been completed; PAID - Booking has been paid \u0026 reservation is confirmed.; FAILED - Booking failed either on suppliers side or on our side.; CANCEL_REQUESTED - The booking is in the process of being canceled; ON_HOLD - The booking is on hold, waiting for further action",
+      "enum": [
+        "TICKETED",
+        "CANCELED",
+        "INITIATED",
+        "PAID",
+        "FAILED",
+        "CANCEL_REQUESTED",
+        "ON_HOLD"
+      ],
+      "goType": "RailBookingState",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.BookingState"
+    },
+    "clientFeature": {
+      "additionalProperties": false,
+      "description": "Describes a feature to be displayed in a client based on the booking data",
+      "goType": "RailClientFeature",
+      "properties": {
+        "clients": {
+          "dataClassification": [],
+          "description": "List of clients affected by this feature",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "$ref": "#/definitions/featureClient"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "type": {
+          "dataClassification": [],
+          "description": "The type of feature to be displayed",
+          "enum": [
+            "AGENCY_CONTACT_INFORMATION",
+            "NOT_TRAVEL_TICKET"
+          ],
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "clients",
+        "type"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.ClientFeature"
+    },
+    "fare": {
+      "additionalProperties": false,
+      "description": "the price and conditions for a set of purchases fare codes",
+      "goType": "RailFare",
+      "properties": {
+        "baseAmount": {
+          "dataClassification": [],
+          "description": "The base amount for the fare",
+          "groups": [
+            "external"
+          ],
+          "type": "number"
+        },
+        "currency": {
+          "dataClassification": [],
+          "description": "The currency used in this fare",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "discountCode": {
+          "dataClassification": [],
+          "description": "The discount code on the fare",
+          "type": "string"
+        },
+        "displayName": {
+          "dataClassification": [],
+          "description": "The fare display name, possibly branded",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "fareCodes": {
+          "dataClassification": [],
+          "description": "fare codes which comprise this fare",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/fareCode"
+          },
+          "type": "array"
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "isCorporateRate": {
+          "dataClassification": [],
+          "description": "Indicates whether the fare includes benefits or discounts specifically tailored for business travel",
+          "groups": [
+            "external"
+          ],
+          "type": "boolean"
+        },
+        "isMilitary": {
+          "dataClassification": [],
+          "description": "Indicates whether the fare is exclusively for militaries or includes a discount for militaries",
+          "groups": [
+            "external"
+          ],
+          "type": "boolean"
+        },
+        "isSeatReservationOnly": {
+          "dataClassification": [],
+          "description": "Indicates whether the fare covers only the reservation of a seat, not transportation.",
+          "groups": [
+            "external"
+          ],
+          "type": "boolean"
+        },
+        "isSenior": {
+          "dataClassification": [],
+          "description": "Indicates whether the fare is exclusively for seniors or includes a discount for seniors",
+          "groups": [
+            "external"
+          ],
+          "type": "boolean"
+        },
+        "railCards": {
+          "dataClassification": [],
+          "description": "List of rail cards applied to this fare",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/railCard"
+          },
+          "type": "array"
+        },
+        "taxAmount": {
+          "dataClassification": [],
+          "description": "The total tax amount for the fare",
+          "groups": [
+            "external"
+          ],
+          "type": "number"
+        },
+        "totalAmount": {
+          "dataClassification": [],
+          "description": "The total amount for the fare",
+          "groups": [
+            "external"
+          ],
+          "type": "number"
+        },
+        "type": {
+          "dataClassification": [],
+          "description": "SINGLE - Fares that don't have any combinability restrictions; RETURN - Round trip fares that have combinability restrictions and the price of the round trip is included on the outbound fare; OPEN_RETURN - Fares with flexible return date and/or time.",
+          "enum": [
+            "SINGLE",
+            "RETURN",
+            "OPEN_RETURN"
+          ],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "validFrom": {
+          "$ref": "shared.json#/definitions/local-date-time",
+          "dataClassification": [],
+          "description": "Start of the validity of the ticketed fare"
+        },
+        "validUntil": {
+          "$ref": "shared.json#/definitions/local-date-time",
+          "dataClassification": [],
+          "description": "Expiration of the the ticketed fare",
+          "groups": [
+            "external"
+          ]
+        }
+      },
+      "required": [
+        "baseAmount",
+        "currency",
+        "displayName",
+        "fareCodes",
+        "id",
+        "isCorporateRate",
+        "isMilitary",
+        "isSeatReservationOnly",
+        "isSenior",
+        "railCards",
+        "totalAmount",
+        "type",
+        "validUntil"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.Fare"
+    },
+    "fareCode": {
+      "additionalProperties": false,
+      "description": "Describes what was purchased for right to travel on a segment, or a seat, or potentially other purchases",
+      "goType": "RailFareCode",
+      "properties": {
+        "fareClass": {
+          "dataClassification": [],
+          "description": "The fare class",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "fareCode": {
+          "dataClassification": [],
+          "description": "The fare code as presented by the supplier",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "fareCodeExternal": {
+          "dataClassification": [],
+          "description": "The fare code in a canonical format friendly to external systems (e.g. GDS)",
+          "type": "string"
+        },
+        "fareDisplayName": {
+          "dataClassification": [],
+          "description": "The fare display name, possibly branded",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "fareRuleId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "Reference to a FareRule applicable to this particular FareCode",
+          "groups": [
+            "external"
+          ]
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "serviceClass": {
+          "$ref": "rail-shared.json#/definitions/railServiceClass",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "supplierClassCode": {
+          "dataClassification": [],
+          "description": "The supplier specific code for class of service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fareClass",
+        "fareCode",
+        "fareDisplayName",
+        "id",
+        "serviceClass"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.FareCode"
+    },
+    "featureClient": {
+      "dataClassification": [],
+      "description": "Clients on which the feature should be displayed",
+      "enum": [
+        "WEB",
+        "EMAIL",
+        "MOBILE"
+      ],
+      "goType": "RailFeatureClient",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.FeatureClient"
+    },
+    "fee": {
+      "additionalProperties": false,
+      "goType": "RailFee",
+      "properties": {
+        "baseAmount": {
+          "dataClassification": [],
+          "description": "The base amount for the fee",
+          "groups": [
+            "external"
+          ],
+          "type": "number"
+        },
+        "description": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "taxAmount": {
+          "dataClassification": [],
+          "description": "The total tax amount for the fee",
+          "type": "number"
+        },
+        "totalAmount": {
+          "dataClassification": [],
+          "description": "The total amount for the fee",
+          "groups": [
+            "external"
+          ],
+          "type": "number"
+        },
+        "type": {
+          "dataClassification": [],
+          "enum": [
+            "SEAT",
+            "MEAL",
+            "CREDIT_CARD_FEE",
+            "OTHER_ANCILLARY"
+          ],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseAmount",
+        "id",
+        "totalAmount",
+        "type"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.Fee"
+    },
+    "frequentTravelerAccount": {
+      "additionalProperties": false,
+      "goType": "FrequentTravelerAccount",
+      "properties": {
+        "displayName": {
+          "dataClassification": [],
+          "description": "Description of the frequent traveler account to be displayed to the user",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "displayName"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.FrequentTravelerAccount"
+    },
+    "journey": {
+      "additionalProperties": false,
+      "description": "Describes the physical way to get from an origin to a destination across one or more segments",
+      "goType": "RailJourney",
+      "groups": [
+        "minimal"
+      ],
+      "properties": {
+        "arrivalDateTime": {
+          "$ref": "shared.json#/definitions/local-date-time",
+          "dataClassification": [],
+          "description": "The local datetime at which the journey ends",
+          "example": "2023-05-31T11:44:17",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "arrivalDateTimeUtc": {
+          "dataClassification": [],
+          "description": "The datetime of the journey's end in UTC, formatted as an RFC 3339 string with a 'Z' suffix",
+          "example": "2022-02-28T15:35:49.000Z",
+          "type": "string"
+        },
+        "co2EmissionInGramsPerPassenger": {
+          "dataClassification": [],
+          "description": "The CO2 emissions in grams per passenger for the whole journey. The value is null if the emissions are unknown",
+          "type": "integer"
+        },
+        "departureDateTime": {
+          "$ref": "shared.json#/definitions/local-date-time",
+          "dataClassification": [],
+          "description": "The local datetime at which the journey begins",
+          "example": "2023-05-31T11:44:17",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "departureDateTimeUtc": {
+          "dataClassification": [],
+          "description": "The datetime of the journey's beginning in UTC, formatted as an RFC 3339 with a 'Z' suffix",
+          "example": "2022-02-28T15:35:49.000Z",
+          "type": "string"
+        },
+        "destination": {
+          "$ref": "rail-shared.json#/definitions/railStation",
+          "dataClassification": [],
+          "description": "The destination station",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "origin": {
+          "$ref": "rail-shared.json#/definitions/railStation",
+          "dataClassification": [],
+          "description": "The origin station",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "policyCompliance": {
+          "$ref": "policy.json#/definitions/journeyFareCompliance",
+          "dataClassification": []
+        },
+        "preferenceLevel": {
+          "$ref": "#/definitions/journeyPreferenceLevel",
+          "dataClassification": [],
+          "description": "The Travel Config Preference Level of the vendor the Journey gets booked through",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "segmentIds": {
+          "dataClassification": [],
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "$ref": "shared.json#/definitions/uuid"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "destination",
+        "id",
+        "origin",
+        "preferenceLevel",
+        "segmentIds"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.Journey"
+    },
+    "journeyPreferenceLevel": {
+      "dataClassification": [],
+      "description": "The Travel Config Preference Level of the vendor the Journey gets booked through",
+      "enum": [
+        "NOT_PREFERRED",
+        "PREFERRED",
+        "MORE_PREFERRED",
+        "MOST_PREFERRED"
+      ],
+      "goType": "RailJourneyPreferenceLevel",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.JourneyPreferenceLevel"
+    },
+    "offerCompliance": {
+      "additionalProperties": false,
+      "description": "Compliance annotated offers and least-cost logical fare info",
+      "goType": "OfferCompliance",
+      "properties": {
+        "isLlf": {
+          "dataClassification": [],
+          "description": "Describing whether the booking is lowest-cost logical fare",
+          "groups": [
+            "external"
+          ],
+          "type": "boolean"
+        },
+        "offer": {
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/offerViolation"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "isLlf",
+        "offer"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.OfferCompliance"
+    },
+    "offerViolation": {
+      "additionalProperties": false,
+      "description": "Offer and their violations",
+      "goType": "OfferViolation",
+      "properties": {
+        "fareIds": {
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "$ref": "shared.json#/definitions/uuid"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "journeyId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "ruleMatches": {
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "policy.json#/definitions/ruleMatch"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "fareIds",
+        "journeyId",
+        "ruleMatches"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.OfferViolation"
+    },
+    "railCard": {
+      "additionalProperties": false,
+      "goType": "RailCard",
+      "properties": {
+        "programName": {
+          "dataClassification": [],
+          "description": "Display name of the rail card",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "programName"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.RailCard"
+    },
+    "seatReservation": {
+      "additionalProperties": false,
+      "description": "Describes a seat reservation on one segment, representing a reservation in an external system",
+      "goType": "RailSeatReservation",
+      "properties": {
+        "carriage": {
+          "dataClassification": [],
+          "description": "carriage number",
+          "type": "string"
+        },
+        "feeId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "reference to fee used to pay for this seat reservation"
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "location": {
+          "dataClassification": [],
+          "description": "location within the wagon (top or bottom for multi level wagons, etc.)",
+          "type": "string"
+        },
+        "passenger": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "Reference to the traveller this seat is reserved for",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "seatDesignation": {
+          "dataClassification": [],
+          "description": "The seat designation or number",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "passenger",
+        "seatDesignation"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.SeatReservation"
+    },
+    "segment": {
+      "additionalProperties": false,
+      "description": "Describes a direct (no switching of equipment) way to get from an origin to a destination",
+      "goType": "RailSegment",
+      "properties": {
+        "areStopsAvailable": {
+          "dataClassification": [],
+          "description": "Indicates whether the stops are available for this segment or not",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "boolean"
+        },
+        "arrivalDateTime": {
+          "$ref": "shared.json#/definitions/local-date-time",
+          "dataClassification": [],
+          "description": "The local datetime at which the segment ends",
+          "example": "2023-05-31T11:44:17",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "arrivalDateTimeUtc": {
+          "dataClassification": [],
+          "description": "The datetime of the segment's end in UTC, formatted as an RFC 3339 string with a 'Z' suffix",
+          "example": "2022-02-28T15:35:49.000Z",
+          "type": "string"
+        },
+        "carrier": {
+          "dataClassification": [],
+          "description": "The company operating the train on this segment",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "carrierLogoFilename": {
+          "dataClassification": [],
+          "description": "The filename (including extension) of the carrier's logo to be displayed",
+          "type": "string"
+        },
+        "carrierName": {
+          "dataClassification": [],
+          "description": "The human readable name of the carrier",
+          "groups": [
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "co2EmissionInGramsPerPassenger": {
+          "dataClassification": [],
+          "description": "The CO2 emissions in grams per passenger for the segment. The value is null if the emissions are unknown",
+          "type": "integer"
+        },
+        "departureDateTime": {
+          "$ref": "shared.json#/definitions/local-date-time",
+          "dataClassification": [],
+          "description": "The local datetime at which the segment begins",
+          "example": "2023-05-31T11:44:17",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "departureDateTimeUtc": {
+          "dataClassification": [],
+          "description": "The datetime of the segment's beginning in UTC, formatted as an RFC 3339 string with a 'Z' suffix",
+          "example": "2022-02-28T15:35:49.000Z",
+          "type": "string"
+        },
+        "destination": {
+          "$ref": "rail-shared.json#/definitions/railStation",
+          "dataClassification": [],
+          "description": "The destination station",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "displayName": {
+          "dataClassification": [],
+          "description": "Description of the segment to be displayed to the user",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "duration": {
+          "dataClassification": [],
+          "description": "duration of the segment in minutes",
+          "type": "number"
+        },
+        "equipmentType": {
+          "dataClassification": [],
+          "description": "Type of train serving this segment (ICE/Re/High-speed...)",
+          "type": "string"
+        },
+        "fareCodeId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": []
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "isTransit": {
+          "dataClassification": [],
+          "description": "Indicates whether the segment is a transit segment, e.g. walk segments used to transfer between rail stations",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "boolean"
+        },
+        "origin": {
+          "$ref": "rail-shared.json#/definitions/railStation",
+          "dataClassification": [],
+          "description": "The origin station",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "seatReservations": {
+          "dataClassification": [],
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "items": {
+            "$ref": "#/definitions/seatReservation"
+          },
+          "type": "array"
+        },
+        "segmentNumber": {
+          "dataClassification": [],
+          "description": "The segment sequence number, starting from 1",
+          "groups": [
+            "external"
+          ],
+          "type": "integer"
+        },
+        "stops": {
+          "dataClassification": [],
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "items": {
+            "$ref": "#/definitions/segmentStop"
+          },
+          "type": "array"
+        },
+        "trainNumber": {
+          "dataClassification": [],
+          "description": "Train reporting number as specified by the operator",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "transportMode": {
+          "$ref": "#/definitions/transportMode",
+          "dataClassification": [],
+          "description": "Transport mode for the segment",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "vendorCode": {
+          "dataClassification": [],
+          "description": "Rail vendor code (IATA if they have one or another custom code)",
+          "groups": [
+            "search",
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "vendorConfirmationNumber": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "Record locator within the system of the vendor or a direct connect supplier. This should be different from a GDS or an aggregator record locator. For most direct connect rail bookings this number will be identical to the RecordLocator.",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "vendorName": {
+          "dataClassification": [],
+          "description": "Name of the vendor, i.e. the company selling the booking this segment belongs to",
+          "groups": [
+            "search",
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "areStopsAvailable",
+        "carrier",
+        "destination",
+        "id",
+        "isTransit",
+        "origin",
+        "seatReservations",
+        "stops",
+        "transportMode",
+        "vendorCode",
+        "vendorConfirmationNumber",
+        "vendorName"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.Segment"
+    },
+    "segmentStop": {
+      "additionalProperties": false,
+      "description": "Describes segment stop details",
+      "goType": "RailSegmentStop",
+      "groups": [
+        "minimal"
+      ],
+      "properties": {
+        "departureDateTime": {
+          "$ref": "shared.json#/definitions/local-date-time",
+          "dataClassification": [],
+          "description": "The local datetime when the transport vehicle is scheduled to depart from the stop",
+          "example": "2023-05-31T11:44:17",
+          "groups": [
+            "external",
+            "minimal"
+          ]
+        },
+        "departureDateTimeUtc": {
+          "dataClassification": [],
+          "description": "The datetime when the transport vehicle is scheduled to depart from the stop in UTC, formatted as an RFC 3339 string with a 'Z' suffix",
+          "example": "2022-02-28T15:35:49.000Z",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "dataClassification": [],
+          "description": "The name of the stop",
+          "groups": [
+            "external",
+            "minimal"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "departureDateTime",
+        "departureDateTimeUtc",
+        "name"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.SegmentStop"
+    },
+    "supplierReference": {
+      "additionalProperties": false,
+      "description": "Describes a reference to a supplier resource",
+      "goType": "RailSupplierReference",
+      "properties": {
+        "type": {
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.SupplierReference"
+    },
+    "ticket": {
+      "additionalProperties": false,
+      "description": "a ticket corresponding to a reserved fare",
+      "goType": "RailTicket",
+      "properties": {
+        "deliveryIds": {
+          "dataClassification": [],
+          "description": "Identifier for selected delivery methods for this ticket",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "$ref": "shared.json#/definitions/uuid"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "fareIds": {
+          "dataClassification": [],
+          "description": "identifier for the fares which this ticket is associated with",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "$ref": "shared.json#/definitions/uuid"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ]
+        },
+        "isLeadTicket": {
+          "dataClassification": [],
+          "description": "Indicates whether this ticket is the lead ticket for the booking",
+          "groups": [
+            "external"
+          ],
+          "type": "boolean"
+        },
+        "isOpenReturn": {
+          "dataClassification": [],
+          "description": "Indicates whether the ticket is related to the open return",
+          "groups": [
+            "external"
+          ],
+          "type": "boolean"
+        },
+        "issueDate": {
+          "$ref": "shared.json#/definitions/date-time",
+          "dataClassification": [],
+          "description": "Date of issuance of the ticket"
+        },
+        "segmentIds": {
+          "dataClassification": [],
+          "description": "Identifier for segments which this ticket is associated with",
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "$ref": "shared.json#/definitions/uuid"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "ticketNumber": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "The ticket number (which might be an alphanumeric)",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "deliveryIds",
+        "fareIds",
+        "id",
+        "isLeadTicket",
+        "isOpenReturn",
+        "segmentIds",
+        "ticketNumber"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.Ticket"
+    },
+    "transportMode": {
+      "dataClassification": [],
+      "description": "Means of transport modes for segments",
+      "enum": [
+        "BUS",
+        "FERRY",
+        "HOVERCRAFT",
+        "METRO",
+        "RAPID_TRANSIT",
+        "TAXI",
+        "TRAIN",
+        "TRAM",
+        "TRAMLINK",
+        "TRANSFER",
+        "UNSPECIFIED",
+        "WALK"
+      ],
+      "goType": "RailTransportMode",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "type": "string",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.TransportMode"
+    },
+    "travelMessage": {
+      "additionalProperties": false,
+      "description": "Describes a message related to the rail booking, such as errors, warnings, or informational messages",
+      "goType": "RailTravelMessage",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "properties": {
+        "classification": {
+          "dataClassification": [],
+          "enum": [
+            "PARTNER_ERROR",
+            "SYSTEM_ERROR",
+            "USER_ERROR"
+          ],
+          "type": "string"
+        },
+        "code": {
+          "dataClassification": [],
+          "description": "T2 error domain code. This code is used to identify the specific error or message",
+          "type": "string"
+        },
+        "correlationId": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "type": {
+          "dataClassification": [],
+          "enum": [
+            "ERROR",
+            "INFO",
+            "WARNING"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "classification",
+        "code",
+        "correlationId",
+        "type"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.rail.TravelMessage"
+    }
+  },
+  "goType": "RailData",
+  "id": "booking-data-rail.json",
+  "properties": {
+    "bookingState": {
+      "$ref": "#/definitions/bookingState",
+      "dataClassification": [],
+      "description": "State of this booking",
+      "groups": [
+        "external",
+        "minimal"
+      ]
+    },
+    "clientFeatures": {
+      "dataClassification": [],
+      "description": "List of features to be displayed in various clients based on the booking data",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "items": {
+        "$ref": "#/definitions/clientFeature"
+      },
+      "type": "array"
+    },
+    "fareRules": {
+      "dataClassification": [],
+      "description": "List of fare rules applicable to the booking",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "rail-shared.json#/definitions/fareRule"
+      },
+      "type": "array"
+    },
+    "fares": {
+      "dataClassification": [],
+      "description": "List of fares covering the booked journeys (allowing for many-to-many relationship)",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "#/definitions/fare"
+      },
+      "type": "array"
+    },
+    "fees": {
+      "dataClassification": [],
+      "description": "Additional fees associated with the booking as a whole",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "#/definitions/fee"
+      },
+      "type": "array"
+    },
+    "frequentTravelerAccounts": {
+      "dataClassification": [],
+      "description": "List of frequent traveler accounts applied to this booking",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "items": {
+        "$ref": "#/definitions/frequentTravelerAccount"
+      },
+      "type": "array"
+    },
+    "journeys": {
+      "dataClassification": [],
+      "description": "Ordered list of journeys comprising the booking",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "items": {
+        "$ref": "#/definitions/journey"
+      },
+      "type": "array"
+    },
+    "messages": {
+      "dataClassification": [],
+      "description": "List of messages related to the rail booking",
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "items": {
+        "$ref": "#/definitions/travelMessage"
+      },
+      "type": "array"
+    },
+    "offerCompliance": {
+      "$ref": "#/definitions/offerCompliance",
+      "dataClassification": [],
+      "description": "Compliance annotated offers and least-cost logical fare info",
+      "groups": [
+        "external"
+      ]
+    },
+    "segments": {
+      "dataClassification": [],
+      "groups": [
+        "external",
+        "minimal"
+      ],
+      "items": {
+        "$ref": "#/definitions/segment"
+      },
+      "type": "array"
+    },
+    "selectedTicketDeliveryType": {
+      "$ref": "rail-shared.json#/definitions/ticketDeliveryType",
+      "dataClassification": [],
+      "description": "Ticket delivery type selected by the user",
+      "groups": [
+        "external"
+      ]
+    },
+    "shoppingSessionId": {
+      "$ref": "shared.json#/definitions/uuid",
+      "dataClassification": [],
+      "description": "Internal identifier of the shopping session associated with the booking",
+      "groups": [
+        "external",
+        "minimal"
+      ]
+    },
+    "supplierReferences": {
+      "dataClassification": [],
+      "description": "List of all supplier references for this booking",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "#/definitions/supplierReference"
+      },
+      "type": "array"
+    },
+    "ticketDeliveries": {
+      "dataClassification": [],
+      "description": "List of all ticket delivery data for tickets issued for this booking",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "rail-shared.json#/definitions/ticketDelivery"
+      },
+      "type": "array"
+    },
+    "tickets": {
+      "dataClassification": [],
+      "description": "List of all tickets issued for this booking",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "#/definitions/ticket"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "bookingState",
+    "clientFeatures",
+    "fareRules",
+    "fares",
+    "fees",
+    "frequentTravelerAccounts",
+    "journeys",
+    "messages",
+    "offerCompliance",
+    "segments",
+    "selectedTicketDeliveryType",
+    "shoppingSessionId",
+    "supplierReferences",
+    "ticketDeliveries",
+    "tickets"
+  ],
+  "type": "object",
+  "x-java-type": "com.concur.t2.schema.itinerary.RailData"
+}

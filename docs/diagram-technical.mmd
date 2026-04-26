@@ -1,0 +1,107 @@
+flowchart LR
+    %% Theme Configuration — Corporate Cool + Earthy Accents
+    %% 60% Dominant: #F8F5EE Off-White, #D9DEDC Light Gray (backgrounds & containers)
+    %% 30% Secondary: #93ACB4 Slate Blue, #262E3C Deep Navy (standard components)
+    %% 10% Accent: #DC751B Safety Orange, #78A1A6 Muted Teal (critical / success)
+    classDef client fill:#F8F5EE,stroke:#262E3C,stroke-width:2px,color:#262E3C
+    classDef aca fill:#D9DEDC,stroke:#93ACB4,stroke-width:2px,color:#262E3C
+    classDef route fill:#93ACB4,stroke:#262E3C,stroke-width:2px,color:#262E3C
+    classDef engine fill:#F8F5EE,stroke:#93ACB4,stroke-width:1px,color:#262E3C
+    classDef ext fill:#6B7A7D,stroke:#262E3C,stroke-width:2px,color:#F8F5EE
+    classDef store fill:#C0907E,stroke:#262E3C,stroke-width:2px,color:#262E3C
+    classDef danger fill:#DC751B,stroke:#262E3C,stroke-width:2px,color:#F8F5EE
+    classDef highlight fill:#78A1A6,stroke:#262E3C,stroke-width:2px,color:#F8F5EE
+
+    %% ---------------------------------------------
+    %% CLIENT LAYER
+    %% ---------------------------------------------
+    subgraph ClientLayer ["Client Layer"]
+        PS["PowerShell TUI (sdlc.ps1)"]:::client
+    end
+
+    %% ---------------------------------------------
+    %% AZURE CONTAINER APPS (ACA)
+    %% ---------------------------------------------
+    subgraph ACA ["Azure Container Apps (FastAPI)"]
+        direction TB
+
+        %% Job Store sits at the top as shared state
+        JobStore[("In-Memory Job Store")]:::store
+
+        %% API Gateway
+        subgraph Routes ["HTTP Gateway"]
+            direction LR
+            Trigger["POST /teams-trigger"]:::route
+            Webhook["POST /github-webhook"]:::route
+            Status["GET /status/{id}"]:::route
+            SSE["GET /stream/{id}"]:::route
+        end
+
+        %% Generation Pipeline
+        subgraph Pipeline ["Generation Pipeline (Async Thread)"]
+            direction LR
+            Clone["Git Clone"]:::engine --> Planner["Meta-Planner"]:::highlight
+            Planner --> DAG
+            
+            subgraph DAG ["DAG Executor (ThreadPool)"]
+                direction TB
+                Agents["Execute Agents in Parallel"]:::engine
+                Rescue["_BLOCKED Protocol -> Spawn Helper"]:::engine
+                Prune["Fail & Cascade Prune"]:::danger
+                Agents -.-> Rescue
+                Agents -.-> Prune
+            end
+            
+            DAG --> Delivery["Compile Delivery Plan"]:::engine
+            Delivery --> ReviewLoop
+            
+            subgraph ReviewLoop ["Review Gate (Max 2 Cycles)"]
+                direction TB
+                Rev["Self-Review"]:::engine
+                Fix["Fix Code"]:::engine
+                Rev -- Rejected --> Fix --> Rev
+            end
+            
+            ReviewLoop -- Approved --> Push["Commit, Push & Open PR"]:::engine
+        end
+
+        %% Revision Pipeline
+        subgraph Revision ["Revision Pipeline (Async Thread)"]
+            direction LR
+            RevInit["Clone & Diff"]:::engine --> RevFix["Fixer Agent"]:::engine --> RevGate["Review Gate"]:::engine --> RevPush["Push Commit"]:::engine
+        end
+    end
+
+    %% ---------------------------------------------
+    %% EXTERNAL SERVICES
+    %% ---------------------------------------------
+    subgraph External ["External Services"]
+        direction TB
+        Gemini["Google Gemini API"]:::ext
+        GitHub["GitHub API & Repos"]:::ext
+    end
+
+    %% ---------------------------------------------
+    %% CONNECTIONS
+    %% ---------------------------------------------
+    %% Client Routing
+    PS -- "Goal" --> Trigger
+    PS -- "Poll" --> Status
+    PS -- "Listen" --> SSE
+
+    %% Internal Triggering
+    Trigger -- "Spawn" --> Pipeline
+    Webhook -- "@sdlc-bot" --> Revision
+
+    %% State Management
+    Pipeline -. "Write Status" .-> JobStore
+    Revision -. "Write Status" .-> JobStore
+    Status -. "Read" .-> JobStore
+    SSE -. "Stream" .-> JobStore
+
+    %% External Calls
+    Pipeline == "Generate" ==> Gemini
+    Revision == "Generate" ==> Gemini
+    Pipeline == "Git / API" ==> GitHub
+    Revision == "Git / API" ==> GitHub
+    GitHub -- "Issue Comment" --> Webhook

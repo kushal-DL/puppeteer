@@ -1,0 +1,412 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "additionalProperties": false,
+  "definitions": {
+    "bookingMetadata": {
+      "additionalProperties": false,
+      "dataClassification": [],
+      "goType": "BookingMetadata",
+      "properties": {
+        "eTag": {
+          "dataClassification": [],
+          "description": "Booking-ETag",
+          "type": "string"
+        },
+        "isT1Booking": {
+          "dataClassification": [],
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "isT1Booking"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.BookingMetadata"
+    },
+    "passengerInfo": {
+      "additionalProperties": false,
+      "description": "T2's canonized version of the external booking record passenger",
+      "goType": "PassengerInfo",
+      "properties": {
+        "passengerId": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "The passenger Id in the external booking record",
+          "type": "string"
+        },
+        "passengerName": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "The passenger name in the external booking record",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "passengerPhoneNumbers": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "The passenger phone numbers in the external booking record",
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [
+              "PII"
+            ],
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "passengerTypeCode": {
+          "dataClassification": [],
+          "description": "The passenger type code in the external booking record",
+          "type": "string"
+        }
+      },
+      "required": [
+        "passengerName"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.PassengerInfo"
+    },
+    "recordLocator": {
+      "additionalProperties": false,
+      "description": "PNR record locator in the external booking system.",
+      "goType": "RecordLocator",
+      "properties": {
+        "type": {
+          "dataClassification": [],
+          "description": "Record locator type. PROVIDER is the default record locator type. UNIVERSAL should be used as an extension for booking system aggregator record locator.",
+          "enum": [
+            "PROVIDER",
+            "UNIVERSAL"
+          ],
+          "groups": [
+            "search",
+            "external"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "Record locator value",
+          "groups": [
+            "search",
+            "external"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.RecordLocator"
+    },
+    "remark": {
+      "additionalProperties": false,
+      "description": "A remark in the external booking record",
+      "goType": "Remark",
+      "properties": {
+        "number": {
+          "dataClassification": [],
+          "description": "The number of the remark",
+          "type": "string"
+        },
+        "segmentNumber": {
+          "dataClassification": [],
+          "description": "The segment number the remark is tied to",
+          "type": "integer"
+        },
+        "text": {
+          "dataClassification": [],
+          "description": "The text of the remark",
+          "type": "string"
+        },
+        "type": {
+          "dataClassification": [],
+          "description": "The type of remark",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.Remark"
+    }
+  },
+  "goType": "Booking",
+  "groups": [
+    "minimal"
+  ],
+  "id": "booking.json",
+  "properties": {
+    "air": {
+      "$ref": "booking-data-air.json#",
+      "dataClassification": [],
+      "groups": [
+        "external",
+        "minimal"
+      ]
+    },
+    "bookingRecord": {
+      "additionalProperties": false,
+      "dataClassification": [],
+      "description": "T2's canonized version of the external booking record",
+      "goType": "BookingRecord",
+      "properties": {
+        "creationAgentId": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "The agent Id who created the record in the external system",
+          "type": "string"
+        },
+        "creationDate": {
+          "$ref": "shared.json#/definitions/date",
+          "dataClassification": [],
+          "description": "The date created in the external system. This is pending deprecation in favor of creationDateTime.",
+          "groups": [
+            "search",
+            "external"
+          ]
+        },
+        "creationDateTime": {
+          "$ref": "shared.json#/definitions/date-time",
+          "dataClassification": [],
+          "description": "The UTC time when the booking is created in OBT",
+          "groups": [
+            "search",
+            "external"
+          ]
+        },
+        "estimatedPurgeDate": {
+          "$ref": "shared.json#/definitions/date",
+          "dataClassification": [],
+          "description": "The date the record is expected to be purged in the external system"
+        },
+        "pcc": {
+          "dataClassification": [],
+          "description": "The PCC that this booking record belongs to in the external system (if this external system supports PCCs",
+          "type": "string"
+        },
+        "rawSource": {
+          "dataClassification": [],
+          "description": "The raw string representing the external source that owns this booking; if the booking was migrated from T1, the value is copied from the T1 Itinerary BookingSource field.",
+          "groups": [
+            "external"
+          ],
+          "type": "string"
+        },
+        "receivedFromLine": {
+          "dataClassification": [],
+          "description": "The received from line on the record in the external system",
+          "type": "string"
+        },
+        "recordLocators": {
+          "dataClassification": [],
+          "groups": [
+            "external"
+          ],
+          "items": {
+            "$ref": "#/definitions/recordLocator"
+          },
+          "type": "array"
+        },
+        "retrievedUtc": {
+          "$ref": "shared.json#/definitions/date-time",
+          "dataClassification": [],
+          "description": "The date and time we last updated the record from the external system",
+          "groups": [
+            "external"
+          ]
+        },
+        "revisionNumber": {
+          "dataClassification": [],
+          "description": "The revision number of the record in the external system",
+          "type": "integer"
+        },
+        "source": {
+          "$ref": "shared.json#/definitions/source",
+          "dataClassification": [],
+          "groups": [
+            "search",
+            "external"
+          ]
+        },
+        "updatedAgentId": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "The agent Id who updated the record in the external system",
+          "type": "string"
+        },
+        "updatedDate": {
+          "$ref": "shared.json#/definitions/date",
+          "dataClassification": [],
+          "description": "The date updated in the external system. This is pending deprecation in favor of updatedDateTime."
+        },
+        "updatedDateTime": {
+          "$ref": "shared.json#/definitions/date-time",
+          "dataClassification": [],
+          "description": "The UTC time when the booking is updated in OBT",
+          "groups": [
+            "external"
+          ]
+        }
+      },
+      "required": [
+        "recordLocators",
+        "retrievedUtc",
+        "source"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.itinerary.BookingRecord"
+    },
+    "cancellations": {
+      "dataClassification": [],
+      "description": "List of all cancellation codes and the associated adjustments",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "shared.json#/definitions/cancellation",
+        "dataClassification": []
+      },
+      "type": "array"
+    },
+    "car": {
+      "$ref": "booking-data-car.json#",
+      "dataClassification": [],
+      "groups": [
+        "external",
+        "minimal"
+      ]
+    },
+    "ground": {
+      "$ref": "booking-data-ground.json#",
+      "dataClassification": []
+    },
+    "hotel": {
+      "$ref": "booking-data-hotel.json#",
+      "dataClassification": [],
+      "groups": [
+        "external",
+        "minimal"
+      ]
+    },
+    "id": {
+      "$ref": "shared.json#/definitions/uuid",
+      "dataClassification": [],
+      "groups": [
+        "external"
+      ]
+    },
+    "isCancelAllowed": {
+      "additionalProperties": false,
+      "description": "Specifies whether cancelation is allowed for the booking or not",
+      "goType": "IsCancelAllowed",
+      "properties": {
+        "cannotCancelReason": {
+          "dataClassification": [],
+          "description": "Reason why a booking cannot be canceled",
+          "type": "string"
+        },
+        "value": {
+          "dataClassification": [],
+          "description": "Specifies whether cancelation is allowed for the booking or not",
+          "enum": [
+            "yes",
+            "no",
+            "onlyTripLevel"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.IsCancelAllowed"
+    },
+    "meta": {
+      "$ref": "#/definitions/bookingMetadata",
+      "dataClassification": []
+    },
+    "misc": {
+      "$ref": "booking-data-misc.json#",
+      "dataClassification": []
+    },
+    "operationId": {
+      "$ref": "shared.json#/definitions/uuid",
+      "dataClassification": [],
+      "description": "Reference to the trip shopping operation this booking belongs to"
+    },
+    "passengers": {
+      "dataClassification": [],
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "#/definitions/passengerInfo"
+      },
+      "type": "array"
+    },
+    "payments": {
+      "dataClassification": [],
+      "description": "List of all payments made for this booking",
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "shared.json#/definitions/payment"
+      },
+      "type": "array"
+    },
+    "policyCompliance": {
+      "$ref": "policy.json#/definitions/policyCompliance",
+      "dataClassification": []
+    },
+    "rail": {
+      "$ref": "booking-data-rail.json#",
+      "dataClassification": [],
+      "groups": [
+        "external",
+        "minimal"
+      ]
+    },
+    "selectedTravelerRuleViolations": {
+      "dataClassification": [],
+      "groups": [
+        "external"
+      ],
+      "items": {
+        "$ref": "shared.json#/definitions/travelerRuleViolation"
+      },
+      "type": "array"
+    },
+    "travelConfigId": {
+      "dataClassification": [],
+      "type": "string"
+    }
+  },
+  "required": [
+    "bookingRecord",
+    "id",
+    "passengers"
+  ],
+  "title": "Booking",
+  "type": "object",
+  "x-java-type": "com.concur.t2.schema.itinerary.Booking"
+}

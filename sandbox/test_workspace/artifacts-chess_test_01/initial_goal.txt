@@ -1,0 +1,1 @@
+create a chess game for me in a python file which i can run in a terminal. i want to be able to play against a bot but you cant program the bot to brute force its way to a checkmate. You can program the bot with some sort of algorithm if you like or in any other way but no brute force.

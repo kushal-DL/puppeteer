@@ -1,0 +1,135 @@
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 63641)
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 58271)
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 58673)
+Traceback (most recent call last):
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+Traceback (most recent call last):
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 126, in do_POST
+    self._handle_completion(raw)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+Traceback (most recent call last):
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 235, in _handle_completion
+    self._json_ok({
+    ~~~~~~~~~~~~~^^
+        "id": f"mock-{call_id}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+        },
+        ^^
+    })
+    ^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 280, in _json_ok
+    self.end_headers()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 598, in end_headers
+    self.flush_headers()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 602, in flush_headers
+    self.wfile.write(b"".join(self._headers_buffer))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 126, in do_POST
+    self._handle_completion(raw)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+----------------------------------------
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 235, in _handle_completion
+    self._json_ok({
+    ~~~~~~~~~~~~~^^
+        "id": f"mock-{call_id}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+        },
+        ^^
+    })
+    ^^
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 280, in _json_ok
+    self.end_headers()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 598, in end_headers
+    self.flush_headers()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 602, in flush_headers
+    self.wfile.write(b"".join(self._headers_buffer))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 126, in do_POST
+    self._handle_completion(raw)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 235, in _handle_completion
+    self._json_ok({
+    ~~~~~~~~~~~~~^^
+        "id": f"mock-{call_id}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+        },
+        ^^
+    })
+    ^^
+  File "C:\Users\C5415005\Documents\auto-sdlc\dashboard\mock_llm.py", line 280, in _json_ok
+    self.end_headers()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 598, in end_headers
+    self.flush_headers()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\http\server.py", line 602, in flush_headers
+    self.wfile.write(b"".join(self._headers_buffer))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\C5415005\AppData\Local\Python\pythoncore-3.14-64\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------

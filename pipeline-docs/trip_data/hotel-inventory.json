@@ -1,0 +1,562 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "additionalProperties": false,
+  "definitions": {
+    "hotelAmenity": {
+      "additionalProperties": false,
+      "description": "HotelAmenity",
+      "goType": "HotelInventoryHotelAmenity",
+      "properties": {
+        "amenityCode": {
+          "dataClassification": [],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "amenityCode"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.hotel.HotelAmenity"
+    },
+    "hotelRate": {
+      "additionalProperties": false,
+      "goType": "HotelInventoryRate",
+      "properties": {
+        "bedding": {
+          "dataClassification": [],
+          "description": "Type of beds in the specified room",
+          "items": {
+            "$ref": "hotel-shared.json#/definitions/bedding"
+          },
+          "type": "array"
+        },
+        "bookingContext": {
+          "additionalProperties": false,
+          "dataClassification": [],
+          "description": "Different suppliers have different required fields for booking. This is a black box that each supplier can use to store their specific contexts.",
+          "type": "object"
+        },
+        "cancellationPolicy": {
+          "$ref": "hotel-shared.json#/definitions/cancellationPolicy",
+          "dataClassification": []
+        },
+        "guarantee": {
+          "$ref": "hotel-shared.json#/definitions/guarantee",
+          "dataClassification": []
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": []
+        },
+        "isCVVRequired": {
+          "dataClassification": [],
+          "default": false,
+          "description": "is credit card CVV required for booking",
+          "type": "boolean"
+        },
+        "localPrice": {
+          "$ref": "hotel-shared.json#/definitions/hotelRatePrice",
+          "dataClassification": [],
+          "description": "price for a hotel stay in hotel's original local currency"
+        },
+        "mealPlans": {
+          "dataClassification": [],
+          "description": "List of OTA Codes describing available complementary meal plans",
+          "items": {
+            "$ref": "hotel-shared.json#/definitions/otaCode"
+          },
+          "type": "array"
+        },
+        "name": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "policyCompliance": {
+          "$ref": "policy.json#/definitions/policyCompliance",
+          "dataClassification": []
+        },
+        "price": {
+          "$ref": "hotel-shared.json#/definitions/hotelRatePrice",
+          "dataClassification": [],
+          "description": "price for a hotel stay in config currency"
+        },
+        "rateCategory": {
+          "dataClassification": [],
+          "description": "This will be used by clients to identify rates that are for a particular category.",
+          "enum": [
+            "AAA",
+            "CORPORATE_DISCOUNT",
+            "GOVERNMENT",
+            "MILITARY",
+            "SENIOR"
+          ],
+          "type": "string"
+        },
+        "rateChangesOverStay": {
+          "dataClassification": [],
+          "description": "Indicates if the rate per night changes over the duration of the stay",
+          "type": "boolean"
+        },
+        "rateDescription": {
+          "dataClassification": [],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "roomAmenities": {
+          "dataClassification": [],
+          "description": "List of OTA Codes describing available room amenities",
+          "items": {
+            "$ref": "hotel-shared.json#/definitions/otaCode"
+          },
+          "type": "array"
+        },
+        "roomDescription": {
+          "dataClassification": [],
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "roomType": {
+          "dataClassification": [],
+          "description": "OTA code of type GRI (Guest Room Info) providing guest room type details",
+          "type": "integer"
+        },
+        "source": {
+          "$ref": "shared.json#/definitions/source",
+          "dataClassification": []
+        },
+        "sourcePropertyId": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "sourceRateId": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "supplierSource": {
+          "additionalProperties": false,
+          "dataClassification": [],
+          "goType": "HotelSupplierSource",
+          "properties": {
+            "logo": {
+              "dataClassification": [],
+              "type": "string"
+            },
+            "name": {
+              "dataClassification": [],
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "x-java-type": "com.concur.t2.schema.inventory.hotel.SupplierSource"
+        }
+      },
+      "required": [
+        "bedding",
+        "id",
+        "isCVVRequired",
+        "localPrice",
+        "mealPlans",
+        "name",
+        "price",
+        "rateDescription",
+        "roomAmenities",
+        "roomDescription",
+        "source",
+        "sourcePropertyId",
+        "sourceRateId"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.hotel.HotelInventoryRate"
+    },
+    "hotelSearch": {
+      "additionalProperties": false,
+      "description": "Hotel search criteria",
+      "goType": "HotelSearchCriteria",
+      "properties": {
+        "endDate": {
+          "$ref": "shared.json#/definitions/date",
+          "dataClassification": []
+        },
+        "guests": {
+          "dataClassification": [],
+          "default": 1,
+          "type": "integer"
+        },
+        "includeDepositRequired": {
+          "dataClassification": [],
+          "description": "Should include properties with deposit required",
+          "type": "boolean"
+        },
+        "searchArea": {
+          "additionalProperties": false,
+          "dataClassification": [],
+          "goType": "HotelSearchArea",
+          "properties": {
+            "address": {
+              "$ref": "shared.json#/definitions/address",
+              "dataClassification": []
+            },
+            "airportCode": {
+              "dataClassification": [],
+              "type": "string"
+            },
+            "hotelId": {
+              "$ref": "shared.json#/definitions/uuid",
+              "dataClassification": [],
+              "description": "places store ID of the search area hotel type"
+            },
+            "latitude": {
+              "dataClassification": [],
+              "type": "number"
+            },
+            "locationName": {
+              "dataClassification": [],
+              "description": "location name of the search criteria",
+              "type": "string"
+            },
+            "locationType": {
+              "dataClassification": [],
+              "enum": [
+                "airport",
+                "address",
+                "companyLocation",
+                "hotel",
+                "referencePoint",
+                "postalCode"
+              ],
+              "type": "string"
+            },
+            "longitude": {
+              "dataClassification": [],
+              "type": "number"
+            },
+            "radius": {
+              "$ref": "shared.json#/definitions/radius",
+              "dataClassification": []
+            }
+          },
+          "required": [
+            "locationType"
+          ],
+          "type": "object",
+          "x-java-type": "com.concur.t2.schema.inventory.hotel.SearchArea"
+        },
+        "startDate": {
+          "$ref": "shared.json#/definitions/date",
+          "dataClassification": []
+        }
+      },
+      "required": [
+        "endDate",
+        "guests",
+        "searchArea",
+        "startDate"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.hotel.SearchCriteria"
+    },
+    "inventoryItem": {
+      "additionalProperties": false,
+      "goType": "HotelInventoryItem",
+      "properties": {
+        "address": {
+          "$ref": "shared.json#/definitions/address",
+          "dataClassification": []
+        },
+        "amenities": {
+          "dataClassification": [],
+          "items": {
+            "$ref": "#/definitions/hotelAmenity"
+          },
+          "type": "array"
+        },
+        "chain": {
+          "$ref": "hotel-shared.json#/definitions/hotelChain",
+          "dataClassification": []
+        },
+        "eReceiptsEnabled": {
+          "dataClassification": [],
+          "default": false,
+          "description": "Indicates whether property supports eReceipts with SAP Concur",
+          "type": "boolean"
+        },
+        "geolocation": {
+          "$ref": "shared.json#/definitions/geolocation",
+          "dataClassification": []
+        },
+        "id": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": []
+        },
+        "isSoldOut": {
+          "dataClassification": [],
+          "description": "Indicates whether property is sold out",
+          "type": "boolean"
+        },
+        "leadRate": {
+          "$ref": "#/definitions/leadRate",
+          "dataClassification": []
+        },
+        "localPriceRange": {
+          "$ref": "#/definitions/priceRange",
+          "dataClassification": [],
+          "description": "priceRange in hotel's local currency"
+        },
+        "name": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "preferenceRanks": {
+          "additionalProperties": false,
+          "dataClassification": [],
+          "description": "The preference rank for this inventory item",
+          "goType": "HotelPreferenceRank",
+          "properties": {
+            "item": {
+              "$ref": "#/definitions/preferenceRank",
+              "dataClassification": [],
+              "description": "Override vendor level preference if set, e.g. Hotel Property Preference Rank"
+            },
+            "vendor": {
+              "$ref": "#/definitions/preferenceRank",
+              "dataClassification": [],
+              "description": "Vendor level preference rank for this item, e.g. Hotel Chain Preference Rank"
+            }
+          },
+          "type": "object"
+        },
+        "priceRange": {
+          "$ref": "#/definitions/priceRange",
+          "dataClassification": [],
+          "description": "priceRange in config currency"
+        },
+        "rates": {
+          "dataClassification": [],
+          "items": {
+            "$ref": "#/definitions/hotelRate"
+          },
+          "type": "array"
+        },
+        "superchain": {
+          "$ref": "hotel-shared.json#/definitions/hotelSuperChain",
+          "dataClassification": []
+        },
+        "supplier": {
+          "$ref": "shared.json#/definitions/source",
+          "dataClassification": [],
+          "description": "Source of the property: master, sabre, hrs etc"
+        },
+        "supplierId": {
+          "dataClassification": [],
+          "description": "unique hotel identifier at supplier",
+          "type": "string"
+        },
+        "sustainabilityAwards": {
+          "dataClassification": [],
+          "items": {
+            "$ref": "hotel-shared.json#/definitions/sustainabilityAward"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "amenities",
+        "eReceiptsEnabled",
+        "geolocation",
+        "id",
+        "leadRate",
+        "name",
+        "rates",
+        "supplier",
+        "supplierId",
+        "sustainabilityAwards"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.hotel.InventoryItem"
+    },
+    "leadRate": {
+      "additionalProperties": false,
+      "description": "Minimum of average nightly rates for the hotel over given period",
+      "goType": "HotelInventoryLeadRate",
+      "properties": {
+        "base": {
+          "dataClassification": [],
+          "description": "Base nightly room rate",
+          "type": "number"
+        },
+        "currency": {
+          "dataClassification": [],
+          "description": "The ISO code of the currency used in this fare",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base",
+        "currency"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.hotel.HotelInventoryLeadRate"
+    },
+    "preferenceRank": {
+      "dataClassification": [],
+      "enum": [
+        "EXCLUDED",
+        "DEMOTED",
+        "NOT_PREFERRED",
+        "LESS_PREFERRED",
+        "PREFERRED",
+        "MOST_PREFERRED"
+      ],
+      "type": "string"
+    },
+    "priceRange": {
+      "additionalProperties": false,
+      "goType": "HotelInventoryPriceRange",
+      "properties": {
+        "currency": {
+          "dataClassification": [],
+          "type": "string"
+        },
+        "max": {
+          "dataClassification": [],
+          "type": "number"
+        },
+        "min": {
+          "dataClassification": [],
+          "type": "number"
+        }
+      },
+      "required": [
+        "currency",
+        "max",
+        "min"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.hotel.PriceRange"
+    },
+    "userSelections": {
+      "additionalProperties": false,
+      "description": "hotel shop selections made by the user",
+      "goType": "HotelUserSelections",
+      "properties": {
+        "fopId": {
+          "dataClassification": [],
+          "description": "The id of the form of payment selected for booking",
+          "type": "string"
+        },
+        "fopUuid": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "The uuid of the form of payment selected for booking"
+        },
+        "inventoryItemId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "hotel inventory item selected by the user"
+        },
+        "loyaltyId": {
+          "dataClassification": [],
+          "description": "profile id of customer loyalty account selected by the user.",
+          "type": "string"
+        },
+        "rateId": {
+          "$ref": "shared.json#/definitions/uuid",
+          "dataClassification": [],
+          "description": "inventory item rate selected by the user"
+        },
+        "specialRequestComments": {
+          "dataClassification": [
+            "PII"
+          ],
+          "description": "Traveler's special request comments",
+          "type": "string"
+        },
+        "specialRequests": {
+          "dataClassification": [],
+          "description": "Fixed tags of room preferences sent to the hotel. e.g. Crib, FoamPillar, RollawayBed",
+          "items": {
+            "additionalProperties": false,
+            "dataClassification": [],
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "travelerRuleViolations": {
+          "dataClassification": [],
+          "items": {
+            "$ref": "shared.json#/definitions/travelerRuleViolation"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "specialRequests",
+        "travelerRuleViolations"
+      ],
+      "type": "object",
+      "x-java-type": "com.concur.t2.schema.inventory.hotel.UserSelections"
+    }
+  },
+  "goType": "HotelInventory",
+  "id": "hotel-inventory.json",
+  "properties": {
+    "hotels": {
+      "dataClassification": [],
+      "items": {
+        "$ref": "#/definitions/inventoryItem"
+      },
+      "type": "array"
+    },
+    "searchCriteria": {
+      "$ref": "#/definitions/hotelSearch",
+      "dataClassification": []
+    },
+    "searchSessionToken": {
+      "dataClassification": [],
+      "description": "HS2 TPA_Extensions/SearchSessionToken",
+      "type": "string"
+    },
+    "selections": {
+      "$ref": "#/definitions/userSelections",
+      "dataClassification": [],
+      "description": "User selections"
+    }
+  },
+  "required": [
+    "hotels"
+  ],
+  "type": "object",
+  "x-java-type": "com.concur.t2.schema.inventory.HotelInventory"
+}
