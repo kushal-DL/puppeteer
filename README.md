@@ -383,28 +383,71 @@ Open `http://localhost:8050`. The dashboard shows:
 
 ---
 
-## Dev-Test Mode (No API Key Required)
+## Dev-Test Mode (Copilot Bridge — No LLM API Key Required)
 
-`client/copilot_bridge.py` provides a file-based testing bridge that lets you (or an AI assistant like Copilot) drive the LLM responses manually — no Gemini/OpenAI API key needed. Only `GITHUB_TOKEN` is required (for cloning and PR creation).
+`client/copilot_bridge.py` provides a file-based testing bridge where **GitHub Copilot acts as the LLM**. HiveShip runs its full pipeline (plan → DAG → review → PR), but instead of calling Gemini or Ollama, each LLM call is routed to a file that Copilot reads and responds to. No Gemini/OpenAI API key needed — only `GITHUB_TOKEN` is required (for cloning and PR creation).
 
-```bash
-python client/copilot_bridge.py "your goal text"
-python client/copilot_bridge.py                  # uses default goal (or DEV_TEST_GOAL env var)
-```
+### Prerequisites
 
-How it works:
+- **VS Code** with the [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) extension installed
+- **Python 3.11+**
+- A **GitHub PAT** (fine-grained) with `Contents: Read and write` + `Pull requests: Read and write` on the target repo
+
+### Step-by-Step
+
+1. **Clone and install:**
+   ```bash
+   git clone https://github.com/kushal-DL/puppeteer.git
+   cd puppeteer
+   pip install -e ".[dev]"
+   ```
+
+2. **Configure `.env`** at the repo root (copy from `.env.example`):
+   ```env
+   GITHUB_TOKEN=github_pat_...        # your fine-grained PAT
+   WEBHOOK_SECRET=any-random-string
+   REPO_OWNER=your-org-or-username    # target repo owner
+   REPO_NAME=your-target-repo         # target repo name
+   BASE_BRANCH=main                   # branch PRs target
+   ```
+
+3. **Open VS Code** in the `puppeteer` folder:
+   ```bash
+   code .
+   ```
+
+4. **Switch Copilot to Agent mode:** Open the Copilot Chat panel (Ctrl+Shift+I), click the mode dropdown at the top, and select **"Agent"**.
+
+5. **Ask Copilot to run the bridge:** In the Copilot Agent chat, type:
+   ```
+   run the command: python client/copilot_bridge.py "your goal text here"
+   ```
+   Copilot will execute the command in the terminal. The script starts three servers:
+   - Mock LLM server (port 11435)
+   - HiveShip (port 80)
+   - Dashboard (port 8050 — open http://localhost:8050/static/index.html to watch)
+
+6. **Copilot handles the rest:** Each time HiveShip needs an LLM response, the script writes the prompt to `client/logs/current_prompt.json`. Copilot reads it, crafts a response, and writes `client/logs/current_response.json`. This repeats for every agent in the DAG (typically 10–15 calls for a complex goal).
+
+7. **PR is created** on the target repo when all agents complete and the review passes.
+
+### How It Works Under the Hood
+
 1. Starts a mock LLM server (port 11435), HiveShip (port 80), and the dashboard (port 8050).
 2. Triggers a generation job with the given goal.
 3. Each time HiveShip needs an LLM response, the mock server blocks. The script polls for the pending prompt and writes it to `client/logs/current_prompt.json`.
-4. You (or Copilot) read the prompt, craft a response, and write `client/logs/current_response.json`.
+4. Copilot reads the prompt, crafts a response, and writes `client/logs/current_response.json`.
 5. The script reads the response file and posts it to the mock LLM, which unblocks HiveShip.
 6. After the PR is created, the script polls GitHub for PR comments (3-minute window) and automatically triggers revision jobs the same way.
 
 The full learning-loop pipeline runs in dev-test mode: memory prefetch, skill discovery, history search, and post-PR extraction. Copilot will see memory/skill context in the prompts when available.
 
-Configuration via environment variables (set in `.env` at the repo root):
-- `REPO_OWNER` / `REPO_NAME` — **required** target repository (set in `.env` or pass per-request)
-- `GITHUB_TOKEN` — **required** for cloning and PR creation
+### Configuration
+
+Environment variables (set in `.env` at the repo root):
+- `REPO_OWNER` / `REPO_NAME` — **required** target repository
+- `GITHUB_TOKEN` — **required** for cloning and PR creation (needs `Contents` + `Pull requests` write permissions)
+- `BASE_BRANCH` — branch PRs target (default: `develop`)
 - `DEV_TEST_GOAL` — override the default goal text
 
 There is also a simpler launcher (`client/dev_launch.py`) that starts the servers and triggers the job but does not run the file-bridge loop — useful for manual testing via HTTP.
@@ -501,4 +544,4 @@ Failures are classified into 20+ typed modes (`FailureClass`), each mapped to a 
 
 ## License
 
-Private repository. All rights reserved.
+This project is licensed under the [GNU General Public License v3.0](LICENSE).

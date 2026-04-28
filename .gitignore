@@ -10,8 +10,12 @@ build/
 .eggs/
 
 # IDE
+*.code-workspace
 .vscode/settings.json
 .idea/
+
+# GitHub (copilot instructions, workflows)
+.github/
 
 # Test / coverage
 .pytest_cache/
@@ -22,6 +26,8 @@ htmlcov/
 docs/claw-code-ref/
 references/
 dashboard/hiveship_obs.db
+dashboard/hiveship_obs.db-shm
+dashboard/hiveship_obs.db-wal
 dashboard/cache.jsonl
 dashboard/telemetry.jsonl
 client/logs/
