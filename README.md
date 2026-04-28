@@ -82,7 +82,7 @@ Tools like GitHub Copilot Coding Agent and Claude Code are excellent developer a
 ## Architecture
 
 ```
-auto-sdlc/
+puppeteer/
 ├── src/hiveship/                    # Main Python package
 │   ├── __init__.py
 │   ├── app.py                       # FastAPI entry — mounts routers, calls setup_logging()
