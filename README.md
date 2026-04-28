@@ -14,7 +14,7 @@ Developer           HiveShip                         GitHub
    │                   │  3. Review (self-check)        │
    │                   │  4. Ship   ─────────────────► PR
    │                   │                                │
-   │  "@sdlc-bot fix"  │◄─────── webhook ──────────────┤
+   │  "@sdlc-bot fix"  │◄──────── webhook ──────────────┤
    │                   │  5. Investigate + fix ────────► Push
 ```
 
