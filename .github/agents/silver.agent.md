@@ -16,67 +16,72 @@ Build and continuously improve a **multi-agent system** powered by the **google-
 5. Push a clean commit and open a GitHub PR
 6. React to PR review comments (via webhook) — investigate, fix, and push follow-up commits autonomously
 
-The target repo is **`kushal-sharma-24/silver-pancake`** on the `develop` branch.
+The target repo is **`kushal-DL/puppeteer`** on the `develop` branch.
 
 ## Repository Structure
 
 ```
 auto-sdlc/
-├── app.py, config.py, models.py, llm.py    # Modular production app (root —
-├── dag.py, job_store.py, git_utils.py       #   must stay flat for Dockerfile
-├── workspace.py                             #   COPY and uvicorn app:app)
-├── routes/                                  # FastAPI route modules
-│   ├── generation.py, status.py, webhook.py
-│   └── __init__.py
-├── client/                                  # PowerShell client
-│   └── sdlc.ps1
-├── legacy/                                  # Monolithic version (prototyping)
-│   └── app_old.py
-├── docs/                                    # Diagrams, analysis, references
-│   ├── diagram-executive.mmd
-│   ├── diagram-technical.mmd
-│   ├── claw-code-analysis.md
-│   └── claw-code-ref/                       # Reference codebase (claw-code)
-├── sandbox/                                 # Experiments, notebooks, test outputs
-│   ├── qwen-3-5-vllm-api.ipynb
-│   └── chess-game.py
-├── .github/
-│   ├── agents/silver.agent.md
-│   └── copilot-instructions.md
-├── Dockerfile.txt
-├── requirements.txt
-└── .dockerignore
+├── src/hiveship/                    # Main Python package
+│   ├── app.py                       # FastAPI entry — mounts routers only
+│   ├── config.py                    # Env vars, constants, fast-fail
+│   ├── models.py                    # Pydantic v2 schemas
+│   ├── llm/                         # LLM abstraction (multi-adapter)
+│   │   ├── base.py                  # LLMModel protocol
+│   │   ├── gemini.py                # GeminiModel (google-genai SDK)
+│   │   └── ollama.py                # OllamaModel (OpenAI-compat + native)
+│   ├── engine/                      # DAG execution engine
+│   │   ├── dag.py                   # DAG executor, agent runner, helpers
+│   │   ├── job_store.py             # Thread-safe in-memory job tracking
+│   │   └── planner.py               # Plan generation + pre-validation
+│   ├── git/                         # Git & GitHub integration
+│   │   └── client.py                # run_git, github_api_request
+│   ├── workspace/                   # File I/O and repo interaction
+│   │   ├── files.py                 # validate_files, write_files, cross-refs
+│   │   └── repo.py                  # sanitize_branch_name, get_repo_summary
+│   └── routes/                      # FastAPI route modules
+│       ├── generation.py            # POST /teams-trigger
+│       ├── status.py                # GET /health, /status, /stream
+│       └── webhook.py               # POST /github-webhook
+├── dashboard/                       # Observability UI (standalone app)
+├── client/sdlc.ps1                  # PowerShell TUI client
+├── tests/                           # Test suite (mirrors src/)
+├── docker/                          # Dockerfile + docker-compose
+├── docs/                            # Architecture diagrams, analysis
+├── pyproject.toml                   # Modern packaging (replaces requirements.txt)
+└── .env.example                     # Template for env vars
 ```
 
-**Why core Python stays at root**: The `Dockerfile.txt` uses `COPY app.py config.py ... ./` and `uvicorn app:app`. Moving modules into a subfolder would break the container build and all internal imports.
-
-### Module Map (production app)
+### Module Map
 
 | Module | Role |
 |--------|------|
-| `app.py` | FastAPI entry point — mounts route modules, no logic |
-| `config.py` | Env vars (`GEMINI_API_KEY`, `GITHUB_TOKEN`, `WEBHOOK_SECRET`), constants (`MAX_DYNAMIC_AGENTS=6`, `MAX_BLOCKS_PER_AGENT=2`), fast-fail checks |
-| `models.py` | Pydantic v2 schemas: `AgentTask`, `WorkflowPlan`, `FileArtifact`, `DeliveryPlan`, `ReviewResult`, `FileRequest` |
-| `llm.py` | LLM abstraction — `GeminiModel` (google-genai SDK), `OllamaModel` (OpenAI-compat + native), `sync_generate_with_retry`, `sync_generate_and_parse` |
-| `dag.py` | DAG engine — `ThreadPoolExecutor(max_workers=4)`, `wait(FIRST_COMPLETED)`, dynamic helper spawning, per-agent block limits, cascade pruning |
-| `job_store.py` | Thread-safe in-memory job dict with millisecond-epoch event log |
-| `git_utils.py` | `run_git` (Basic-auth header injection, `Authorization` redacted on error), `github_api_request` |
-| `workspace.py` | `validate_files` (path-traversal + protected-path guards), `write_files`, `read_agent_files`, `read_artifact_context`, `get_repo_summary` |
-| `routes/status.py` | `/health`, `/status/{job_id}`, `/stream/{job_id}` (SSE) |
-| `routes/generation.py` | `/teams-trigger`, `_sync_generation_pipeline`, planner pre-validation |
-| `routes/webhook.py` | `/github-webhook` (HMAC-verified), PR revision pipeline — investigate → fix → review-gate → push |
-
-### Monolithic app (`legacy/app_old.py`)
-
-Single ~2000-line file containing all the above logic. Kept for rapid prototyping and debugging. **Must stay in sync** with the modular version for all LLM/schema/pipeline changes.
+| `hiveship.app` | FastAPI entry point — mounts route modules, no logic |
+| `hiveship.config` | Env vars, constants (`MAX_DYNAMIC_AGENTS=6`, `MAX_BLOCKS_PER_AGENT=2`), fast-fail checks |
+| `hiveship.models` | Pydantic v2 schemas: `AgentTask`, `WorkflowPlan`, `FileArtifact`, `DeliveryPlan`, `ReviewResult`, `FileRequest` |
+| `hiveship.llm` | LLM abstraction — `GeminiModel`, `OllamaModel`, `sync_generate_with_retry`, `sync_generate_and_parse` |
+| `hiveship.llm.base` | `LLMModel` protocol — contract for all adapters |
+| `hiveship.llm.gemini` | Gemini adapter (google-genai SDK) + `ResponseShim` |
+| `hiveship.llm.ollama` | Ollama adapter (OpenAI-compat + native) |
+| `hiveship.engine.dag` | DAG engine — `ThreadPoolExecutor(max_workers=4)`, `wait(FIRST_COMPLETED)`, dynamic helper spawning, cascade pruning |
+| `hiveship.engine.job_store` | Thread-safe in-memory job dict with millisecond-epoch event log |
+| `hiveship.engine.planner` | `validate_plan_against_repo` — planner pre-validation |
+| `hiveship.git.client` | `run_git` (Basic-auth header injection, `Authorization` redacted), `github_api_request` |
+| `hiveship.workspace.files` | `validate_files` (path-traversal + protected-path guards), `write_files`, `read_agent_files`, `validate_cross_references` |
+| `hiveship.workspace.repo` | `sanitize_branch_name`, `get_repo_summary` |
+| `hiveship.routes.status` | `/health`, `/status/{job_id}`, `/stream/{job_id}` (SSE) |
+| `hiveship.routes.generation` | `/teams-trigger`, `_sync_generation_pipeline` |
+| `hiveship.routes.webhook` | `/github-webhook` (HMAC-verified), PR revision pipeline |
 
 ### Other directories
 
 | Directory | Purpose |
 |-----------|---------|
 | `client/` | `sdlc.ps1` — PowerShell 5.1 client for dispatching goals and streaming DAG events |
-| `docs/` | Mermaid diagrams (`diagram-executive.mmd`, `diagram-technical.mmd`), analysis notes, reference codebases |
-| `sandbox/` | Experiments, notebooks, test outputs — not deployed |
+| `dashboard/` | Standalone observability UI — SQLite + polling + dark-theme SPA |
+| `tests/` | Test suite mirroring src/ structure (unit + integration) |
+| `docker/` | `Dockerfile` + `docker-compose.yml` for containerized deployment |
+| `docs/` | Architecture diagrams, failure analysis |
 
 ### Pipeline Phases (generation)
 
@@ -146,7 +151,7 @@ Structured output is enforced **at the API level**, not via prompt text. The sch
 
 ## Rules
 
-- **google-genai SDK**: primary LLM provider. Model: `gemini-2.5-flash`. All Gemini calls go through `genai.Client` configured in `llm.py`. Never use the old `google.generativeai` package.
+- **google-genai SDK**: primary LLM provider. Model: `gemini-2.5-flash`. All Gemini calls go through `genai.Client` configured in `hiveship.llm.gemini`. Never use the old `google.generativeai` package.
 - **Structured output via `response_schema`**: always pass the Pydantic class directly — never manually convert to `response_json_schema`.
 - **Pydantic v2**: `field_validator` only, never `validator`.
 - **Async discipline**: sync LLM/git operations always in `asyncio.to_thread` — never block the FastAPI event loop.
@@ -162,9 +167,9 @@ When a pipeline fails or degrades:
 1. **Read the event log** — sort by `t`, find the first `agent_failed` that isn't a cascade victim
 2. **Classify the pattern**:
    - *Schema echo*: model returns `{"type": "object", "properties": {...}}` → verify `response_schema` is a Pydantic class (not a dict), and that `GeminiModel` is NOT converting it to `response_json_schema`
-   - *Block-spiral*: agent blocked repeatedly → check `MAX_BLOCKS_PER_AGENT` in `dag.py`
+   - *Block-spiral*: agent blocked repeatedly → check `MAX_BLOCKS_PER_AGENT` in `hiveship.config`
    - *Helper exhaustion*: `MAX_DYNAMIC_AGENTS` reached → was the plan valid? Check planner pre-validation
-   - *Planner error*: plan references non-existent files → pre-validation should have caught this
+   - *Planner error*: plan references non-existent files → `hiveship.engine.planner` should have caught this
    - *LLM failure*: empty/blocked response or 400 context overflow → `OllamaModel` halves `max_tokens` on overflow
    - *Git failure*: clone/push failed → check `run_git` stderr in the error detail
 3. **Trace the cascade**: which downstream agents were pruned? Were they all truly dependent?

@@ -1,4 +1,32 @@
+# Secrets
 .env
+
+# Python
 __pycache__/
 *.pyc
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Test / coverage
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Project-specific
 docs/claw-code-ref/
+references/
+dashboard/hiveship_obs.db
+dashboard/cache.jsonl
+dashboard/telemetry.jsonl
+client/logs/
+
+# Legacy (deprecated — to be removed)
+legacy/
+sandbox/
+business-case/

@@ -11,8 +11,8 @@ $LlmProvider  = "ollama"   # "gemini" or "ollama"
 $OllamaBaseUrl = "https://my-api.trycloudflare.com"        # Ollama endpoint — e.g. Cloudflare tunnel URL from Kaggle or local
                            # Leave blank to use the server's OLLAMA_BASE_URL env var
 $OllamaModel  = "Qwen/Qwen2.5-7B-Instruct"         # e.g. "llama3", "codellama", "gemma3:4b" (only used when LlmProvider = "ollama")
-$ReviewCycles = 3          # 0–5
-# ──────────────────────────────────────────────────────────────────────────────
+$ReviewCycles = 3          # 0–5$RepoOwner    = ""         # GitHub owner or org (e.g. "my-org"). Falls back to server's REPO_OWNER env var.
+$RepoName     = ""         # GitHub repo name (e.g. "my-repo"). Falls back to server's REPO_NAME env var.# ──────────────────────────────────────────────────────────────────────────────
 
 # Env-var fallbacks (so you can also set $env:SDLC_BASE_URL etc. once in your profile)
 if (-not $BaseUrl)       { $BaseUrl       = $env:SDLC_BASE_URL }
@@ -20,6 +20,8 @@ if (-not $LlmProvider)   { $LlmProvider   = if ($env:SDLC_LLM_PROVIDER)  { $env:
 if (-not $OllamaBaseUrl) { $OllamaBaseUrl = $env:SDLC_OLLAMA_BASE_URL }
 if (-not $OllamaModel)   { $OllamaModel   = $env:SDLC_OLLAMA_MODEL }
 if (-not $ReviewCycles)  { $ReviewCycles  = if ($env:SDLC_REVIEW_CYCLES) { [int]$env:SDLC_REVIEW_CYCLES } else { 2 } }
+if (-not $RepoOwner)     { $RepoOwner     = $env:REPO_OWNER }
+if (-not $RepoName)      { $RepoName      = $env:REPO_NAME }
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -174,6 +176,8 @@ try {
     $body = @{ text = $Goal; llm_provider = $LlmProvider; review_cycles = $ReviewCycles }
     if ($OllamaModel)   { $body["ollama_model"]    = $OllamaModel }
     if ($OllamaBaseUrl) { $body["ollama_base_url"] = $OllamaBaseUrl }
+    if ($RepoOwner)     { $body["repo_owner"]      = $RepoOwner }
+    if ($RepoName)      { $body["repo_name"]       = $RepoName }
     $body = $body | ConvertTo-Json
     $resp = Invoke-RestMethod -Uri "$BaseUrl/teams-trigger" -Method Post -Body $body -ContentType "application/json"
 } catch {

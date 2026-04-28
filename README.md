@@ -1,22 +1,43 @@
 # HiveShip
 
-An autonomous SDLC orchestrator that transforms plain-English goals into fully executed, PR-delivered codebase changes — with zero human intervention.
-
-Describe what you want built. HiveShip decomposes your goal into a team of specialist AI agents, executes them in parallel as a dependency-aware DAG, self-reviews the output for correctness, and opens a pull request with the result. When you leave review comments on the PR, HiveShip picks them up via webhook and autonomously pushes fixes.
+An autonomous SDLC orchestrator that transforms plain-English goals into fully executed, PR-delivered codebase changes — with zero human intervention. Unlike stateless coding assistants, HiveShip **learns from every run**: it accumulates repository knowledge, indexes past jobs, and codifies reusable procedures — so the 50th PR against a repo is measurably better and cheaper than the 1st.
 
 ```
 Developer           HiveShip                         GitHub
    │                   │                                │
    │  "Build X"        │                                │
    ├──────────────────►│                                │
-   │                   │  1. Plan  (LLM decomposes)     │
-   │                   │  2. Execute (parallel agents)  │
-   │                   │  3. Review (self-check)        │
-   │                   │  4. Ship   ─────────────────► PR
+   │                   │  1. Recall (memory + skills)   │
+   │                   │  2. Plan  (LLM decomposes)     │
+   │                   │  3. Execute (parallel agents)  │
+   │                   │  4. Review (self-check)        │
+   │                   │  5. Ship   ─────────────────► PR
+   │                   │  6. Learn  (extract facts)     │
    │                   │                                │
-   │  "@sdlc-bot fix"  │◄──────── webhook ──────────────┤
-   │                   │  5. Investigate + fix ────────► Push
+   │  "@sdlc-bot fix"  │◄─────── webhook ──────────────┤
+   │                   │  7. Investigate + fix ────────► Push
 ```
+
+---
+
+## Why HiveShip (vs. Copilot / Claude Code)
+
+Tools like GitHub Copilot Coding Agent and Claude Code are excellent developer assistants. HiveShip is justified when specific conditions apply:
+
+| Condition | HiveShip Advantage |
+|-----------|-------------------|
+| **Data sovereignty** | Runs on your Azure infra. With Ollama, fully air-gapped — your code never leaves your network. Copilot and Claude Code send code to external APIs. |
+| **Cost at scale** | Token-cost only; one instance serves the whole org. No per-seat licensing. For large teams, the cost curve is fundamentally different. |
+| **Pipeline control** | Every step (plan, execute, review, deliver) is customisable. Add compliance checks, architecture gates, domain-specific validation. Vendor tools ship what they ship. |
+| **Automatic knowledge capture** | Memory, job history, and skills are extracted automatically after every run. Copilot's `copilot-instructions.md` and Claude's `CLAUDE.md` require manual maintenance — in practice, they rot. |
+| **Vendor independence** | Not locked into GitHub/Anthropic roadmaps. Swap LLM providers, modify review logic, extend the DAG — it's your system. |
+
+**What HiveShip is NOT:**
+- Not a replacement for interactive coding assistants (Copilot in the IDE, Claude Code at the terminal)
+- Not stronger on raw model quality — Copilot uses GPT-4o/Claude; HiveShip uses Gemini Flash (cheaper, less capable on complex reasoning)
+- Not zero-maintenance — it's another system to operate, monitor, and upgrade
+
+**Best positioning:** Developers use Copilot/Claude at their desk for interactive work. HiveShip runs in the background handling the queue of well-defined tasks (add endpoint, write migration, fix accessibility, update docs). They're complementary.
 
 ---
 
@@ -40,7 +61,21 @@ Developer           HiveShip                         GitHub
 
 - **Observability Dashboard** — A standalone web UI (Flask-based) that polls HiveShip for job data, tracks LLM call telemetry, and visualises agent state timelines and event logs.
 
-- **Secure by Default** — Git authentication uses header injection (PAT never written to disk or `.gitconfig`). Secrets are redacted in all logs. Path traversal and protected-path guards prevent writes to `.github/`, `.git/`, `.env`, etc.
+- **Secure by Default** — Git authentication uses header injection (PAT never written to disk or `.gitconfig`). Secrets are redacted in all logs via `RedactingFormatter`. Path traversal and protected-path guards prevent writes to `.github/`, `.git/`, `.env`, etc.
+
+- **Persistent Memory** — HiveShip maintains a per-repo memory store (`.hiveship/memory.md`) with injection-scanning guards (11 regex patterns for prompt injection, exfiltration, invisible unicode). After each PR, the system extracts useful facts from the run and adds them to memory. All entries are deduplicated and capped at 3000 chars. Mutations during a run don't affect prompts (frozen snapshot pattern).
+
+- **Job History & Session Search** — Every job is recorded in a SQLite database (WAL mode + FTS5 full-text search). Past jobs are searchable by goal, agent output, or repo — and relevant history snippets are injected into the planner prompt so agents benefit from prior work.
+
+- **Reusable Skills** — HiveShip discovers and codifies procedural knowledge as skills (`.hiveship/skills/{name}/SKILL.md`). Skills are created automatically after complex jobs (4+ agents), indexed for the planner, and injected as full procedures for agents. Supports per-repo and global skill directories.
+
+- **Trajectory Compression** — When agent context grows too large, HiveShip compresses the middle of the context (protecting the first 2 and last 3 entries) via LLM summarisation or truncation fallback. This keeps token costs bounded on long runs.
+
+- **Token & Cost Tracking** — Every LLM call records input/output tokens and estimated cost. Usage is accumulated per-job and recorded in history. Supports pricing for Gemini model tiers.
+
+- **Smart Error Classification** — 20+ regex patterns classify failures into typed categories (rate limit, billing, auth, context overflow, payload too large, safety block, etc.). Each category maps to a `RecoveryHint` with `retryable`, `should_compress`, and `should_fallback` flags. Retry uses decorrelated jitter backoff.
+
+- **Redacting Observability** — Structured logging with `RedactingFormatter` that strips API keys, Bearer/Basic tokens, GitHub PATs, and Google API keys. Per-job log correlation via thread-local `session_context`. Rotating file handlers for `agent.log` and `errors.log`.
 
 ---
 
@@ -48,44 +83,108 @@ Developer           HiveShip                         GitHub
 
 ```
 auto-sdlc/
-├── app.py              # FastAPI entry point — mounts routers only
-├── config.py           # Environment variables, constants, fast-fail checks
-├── models.py           # Pydantic v2 schemas (AgentTask, WorkflowPlan, ReviewResult, etc.)
-├── llm.py              # LLM abstraction: GeminiModel, OllamaModel, retry logic
-├── dag.py              # DAG execution engine: parallel agents, helper spawning, pruning
-├── job_store.py        # Thread-safe in-memory job tracking with event logs
-├── git_utils.py        # Git subprocess wrapper with Basic-auth header injection
-├── workspace.py        # File I/O: validation, write, read with budgets, repo summary
-├── routes/
-│   ├── generation.py   # /teams-trigger — planner → DAG → review → PR
-│   ├── status.py       # /health, /status/{job_id}, /stream/{job_id} (SSE)
-│   └── webhook.py      # /github-webhook — PR comment → investigate → fix → push
-├── client/
-│   └── sdlc.ps1        # PowerShell CLI: interactive goal → live DAG event stream
-├── dashboard/
-│   ├── serve.py        # Observability dashboard server
-│   ├── index.html      # Single-page dashboard UI (dark theme)
-│   ├── db.py           # SQLite persistence for jobs and LLM calls
-│   ├── dev_test.py     # Copilot-driven testing bridge (no API key required)
-│   └── mock_llm.py     # Lightweight mock LLM server for dev-test
-├── legacy/
-│   └── app_old.py      # Monolithic single-file version (~2000 lines)
-├── Dockerfile.txt      # Container image (Python 3.11-slim + git)
-└── requirements.txt
+├── src/hiveship/                    # Main Python package
+│   ├── __init__.py
+│   ├── app.py                       # FastAPI entry — mounts routers, calls setup_logging()
+│   ├── config.py                    # Env vars, constants, fast-fail checks
+│   ├── models.py                    # Pydantic v2 schemas + error classification
+│   ├── logging.py                   # RedactingFormatter, rotating handlers, session context
+│   ├── llm/                         # LLM abstraction (multi-adapter)
+│   │   ├── __init__.py              # sync_generate_with_retry, usage accumulation, jittered backoff
+│   │   ├── base.py                  # LLMModel protocol, UsageRecord, PRICING, estimate_cost
+│   │   ├── gemini.py                # GeminiModel (google-genai SDK) + usage extraction
+│   │   └── ollama.py                # OllamaModel (OpenAI-compat + native) + usage extraction
+│   ├── engine/                      # DAG execution engine
+│   │   ├── __init__.py
+│   │   ├── dag.py                   # DAG executor, agent runner, helpers, memory/skill injection
+│   │   ├── job_store.py             # Thread-safe in-memory job tracking
+│   │   ├── planner.py               # Plan generation + pre-validation
+│   │   └── compression.py           # Trajectory compression (head/tail protect, LLM summarise)
+│   ├── memory/                      # Learning loop — memory, history, skills
+│   │   ├── __init__.py              # Re-exports: MemoryStore, MemoryManager, JobHistoryDB, etc.
+│   │   ├── store.py                 # MemoryStore: CRUD on .hiveship/memory.md, injection scanning
+│   │   ├── manager.py               # MemoryManager: prefetch, frozen snapshot, extraction prompt
+│   │   ├── history.py               # JobHistoryDB: SQLite WAL + FTS5, job/message recording
+│   │   ├── search.py                # search_past_jobs: FTS5 search, windowed snippet extraction
+│   │   └── skills.py                # SkillStore: discover, load, create, patch, YAML frontmatter
+│   ├── git/                         # Git & GitHub integration
+│   │   ├── __init__.py
+│   │   └── client.py                # run_git, github_api_request
+│   ├── workspace/                   # File I/O and repo interaction
+│   │   ├── __init__.py
+│   │   ├── files.py                 # validate_files, write_files, cross-refs
+│   │   └── repo.py                  # sanitize_branch_name, get_repo_summary
+│   └── routes/                      # FastAPI route modules
+│       ├── __init__.py
+│       ├── generation.py            # POST /teams-trigger — full pipeline with learning loop
+│       ├── status.py                # GET /health, /status/{job_id}, /stream/{job_id} (SSE)
+│       └── webhook.py               # POST /github-webhook — PR comment → fix → push
+├── tests/                           # Test suite (mirrors src/)
+│   ├── conftest.py
+│   └── unit/
+│       ├── test_models.py
+│       ├── test_hardening.py        # Error classification + compression tests
+│       ├── engine/
+│       │   └── test_job_store.py
+│       ├── memory/
+│       │   ├── test_store.py
+│       │   ├── test_manager.py
+│       │   ├── test_history.py
+│       │   ├── test_search.py
+│       │   └── test_skills.py
+│       └── workspace/
+│           ├── test_files.py
+│           └── test_repo.py
+├── client/                          # Client scripts & dev-test launchers
+│   ├── sdlc.ps1                     # PowerShell TUI client (production)
+│   ├── copilot_bridge.py            # Copilot-driven file-bridge orchestrator
+│   ├── dev_launch.py                # Simple server launcher (manual testing)
+│   └── mock_llm.py                  # Blocking mock LLM server for dev-test
+├── dashboard/                       # Observability UI (standalone app)
+│   ├── serve.py
+│   ├── index.html
+│   └── db.py
+├── docker/                          # Container build
+│   ├── Dockerfile
+│   └── docker-compose.yml
+├── docs/                            # Architecture diagrams, analysis
+│   ├── architecture/
+│   │   ├── diagram-executive.mmd
+│   │   └── diagram-technical.mmd
+│   └── analysis/
+│       └── failure-modes.md
+├── pyproject.toml                   # Modern packaging (pip install -e ".[dev]")
+├── .env.example                     # Template for env vars
+└── README.md
 ```
 
 ### Module Responsibilities
 
 | Module | What It Does |
 |--------|-------------|
-| `app.py` | Mounts FastAPI routers. No business logic. |
-| `config.py` | Loads env vars (`GEMINI_API_KEY`, `GITHUB_TOKEN`, `WEBHOOK_SECRET`), sets pipeline limits, fails fast on missing credentials. |
-| `models.py` | All Pydantic schemas: `AgentTask`, `WorkflowPlan`, `FileArtifact`, `DeliveryPlan`, `ReviewResult`, `FailureClass` (12 typed failure modes), `RecoveryRecipe`, `AgentStatus` lifecycle enum. |
-| `llm.py` | Unified LLM interface. `GeminiModel` wraps the `google-genai` SDK. `OllamaModel` auto-detects native Ollama vs OpenAI-compatible endpoints. `sync_generate_and_parse()` handles structured output with retry. |
-| `dag.py` | Runs the agent DAG with `ThreadPoolExecutor(max_workers=4)` and `wait(FIRST_COMPLETED)`. Handles blocked agents, helper spawning, cascade pruning, and per-agent lifecycle tracking. |
-| `job_store.py` | Thread-safe dict-based job store. Tracks status, events (ms-epoch timestamps), and per-agent lifecycle states. |
-| `git_utils.py` | `run_git()` injects `http.extraHeader` for Basic-auth. `github_api_request()` for REST API calls. PAT never touches disk. |
-| `workspace.py` | `get_repo_summary()`, `validate_files()` (path traversal guard), `write_files()`, `read_agent_files()` with configurable budgets. |
+| `hiveship.app` | Mounts FastAPI routers, calls `setup_logging()`. No business logic. |
+| `hiveship.config` | Loads env vars, sets pipeline limits (`COMPRESSION_TARGET`, `AGENT_OUTPUT_CAP`, `DAG_TURN_BUDGET`), fails fast on missing credentials. |
+| `hiveship.models` | Pydantic schemas: `AgentTask`, `WorkflowPlan`, `FileArtifact`, `DeliveryPlan`, `ReviewResult`. Error classification: `FailureClass` (20+ typed modes), `RecoveryHint`, `classify_failure()`, `get_recovery_hint()`. |
+| `hiveship.logging` | `RedactingFormatter` (6 regex patterns), `set_session_context(job_id)` for per-job correlation, `setup_logging()` with rotating file handlers. |
+| `hiveship.llm` | `sync_generate_with_retry` (jittered backoff), `sync_generate_and_parse`, usage accumulation (`get_total_cost()`, `reset_usage()`). |
+| `hiveship.llm.base` | `LLMModel` protocol, `UsageRecord` dataclass, `PRICING` dict, `estimate_cost()`, `make_usage()`. |
+| `hiveship.llm.gemini` | Gemini adapter (`google-genai` SDK) + `ResponseShim` with usage extraction. |
+| `hiveship.llm.ollama` | Ollama adapter (OpenAI-compat + native) with usage extraction. |
+| `hiveship.engine.dag` | DAG executor with memory/skill injection, trajectory compression, helper spawning, cascade pruning. |
+| `hiveship.engine.job_store` | Thread-safe dict-based job store with event logs. |
+| `hiveship.engine.planner` | `validate_plan_against_repo` — re-prompts planner on missing file references. |
+| `hiveship.engine.compression` | `should_compress()`, `compress_context()` — head/tail protection, LLM summarisation or truncation fallback. |
+| `hiveship.memory.store` | `MemoryStore` — CRUD on `.hiveship/memory.md`, injection scanning (11 patterns), deduplication, 3000 char limit. |
+| `hiveship.memory.manager` | `MemoryManager` — `prefetch()` with frozen snapshot, `build_memory_context_block()`, `build_extraction_prompt()`, `apply_extracted_entries()`. |
+| `hiveship.memory.history` | `JobHistoryDB` — SQLite WAL + FTS5, `record_job()`, `record_message()`, `search_messages()`, decorrelated jitter retry on lock contention. |
+| `hiveship.memory.search` | `search_past_jobs()` — FTS5 grouped by job, windowed snippet extraction, `format_search_results_for_prompt()`. |
+| `hiveship.memory.skills` | `SkillStore` — discover/load/create/patch/delete, YAML frontmatter parsing, `build_skill_index_for_prompt()`, `build_skill_content_for_agent()`. |
+| `hiveship.git.client` | `run_git()` (Basic-auth header injection), `github_api_request()`. PAT never touches disk. |
+| `hiveship.workspace.files` | `validate_files()` (path traversal guard), `write_files()`, `read_agent_files()`, `validate_cross_references()`. |
+| `hiveship.workspace.repo` | `sanitize_branch_name()`, `get_repo_summary()`. |
+| `hiveship.routes.generation` | `/teams-trigger` — full pipeline: memory prefetch → skill discovery → history search → plan → DAG → review → PR → extract memory/skills → record history. |
+| `hiveship.routes.status` | `/health`, `/status/{job_id}`, `/stream/{job_id}` (SSE). |
+| `hiveship.routes.webhook` | `/github-webhook` — PR comment → investigate → fix → push. |
 
 ---
 
@@ -93,14 +192,17 @@ auto-sdlc/
 
 ### Generation (Goal → Pull Request)
 
-1. **Clone** — Shallow-clone the target repo's base branch.
-2. **Plan** — LLM decomposes the goal into a `WorkflowPlan` with up to 8 specialist agents.
-3. **Pre-Validate** — Check that all `read_files` and `input_keys` referenced in the plan actually exist. Re-prompt the planner if not.
-4. **Execute DAG** — Run agents in parallel. Each agent reads file context + upstream artifact context, generates output, and writes to `artifacts_dir/*.txt`. Blocked agents emit `_BLOCKED.json` → helpers are spawned automatically.
-5. **Deliver** — A delivery agent synthesizes all artifacts into self-contained source files with a commit message and PR title.
-6. **Cross-Reference Check** — Validate that inter-file imports resolve.
-7. **Self-Review Loop** — Reviewer checks for concrete issues (syntax, missing imports, security). Fixer corrects. Repeat up to `MAX_REVIEW_CYCLES`.
-8. **Ship** — Write files, commit, push feature branch, open PR against base branch.
+1. **Initialise** — Create job in history DB, set session context for log correlation, reset usage counters.
+2. **Recall** — Prefetch memory (frozen snapshot), discover skills, search past jobs for relevant history.
+3. **Clone** — Shallow-clone the target repo's base branch.
+4. **Plan** — LLM decomposes the goal into a `WorkflowPlan` with up to 8 specialist agents. Memory, skill index, and history snippets are injected into the planner prompt.
+5. **Pre-Validate** — Check that all `read_files` and `input_keys` referenced in the plan actually exist. Re-prompt the planner if not.
+6. **Execute DAG** — Run agents in parallel. Each agent receives file context + upstream artifacts + memory block + skill procedures. Trajectory compression kicks in when context exceeds `COMPRESSION_TARGET`.
+7. **Deliver** — A delivery agent synthesizes all artifacts into self-contained source files with a commit message and PR title.
+8. **Cross-Reference Check** — Validate that inter-file imports resolve.
+9. **Self-Review Loop** — Reviewer checks for concrete issues. Fixer corrects. Repeat up to `MAX_REVIEW_CYCLES`.
+10. **Ship** — Write files, commit, push feature branch, open PR against base branch.
+11. **Learn** — Extract memory entries from the run via LLM. Create skills for complex jobs (4+ agents). Record final status and cost in history DB.
 
 ### Revision (PR Comment → Fix → Push)
 
@@ -124,30 +226,52 @@ auto-sdlc/
 
 ### Environment Variables
 
-Create a `.env` file at the repo root (never committed):
+Create a `.env` file at the repo root (never committed). Copy from `.env.example`:
 
 ```env
+# Required
 GITHUB_TOKEN=ghp_your_pat_here
 WEBHOOK_SECRET=your_webhook_secret
+REPO_OWNER=your_github_username_or_org
+REPO_NAME=your_repo_name
+
+# LLM provider (at least one required)
 GEMINI_API_KEY=your_gemini_key          # if using Gemini
 OLLAMA_BASE_URL=http://localhost:11434   # if using Ollama
 OLLAMA_MODEL=llama3                      # Ollama model name
 DEFAULT_LLM_PROVIDER=gemini              # "gemini" or "ollama"
+
+# Optional
 BASE_BRANCH=develop                      # target branch for PRs
+BOT_USERNAME=your_github_username        # for webhook self-loop prevention
 ```
+
+> **Note:** `REPO_OWNER` and `REPO_NAME` set the default target repo. You can also override them per-request by passing `repo_owner` and `repo_name` in the `/teams-trigger` request body — this lets a single HiveShip deployment target repos across different owners and orgs. Your `GITHUB_TOKEN` must have access to all target repos.
 
 ### Run Locally
 
 ```bash
-pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 80
+pip install -e ".[dev]"
+uvicorn hiveship.app:app --host 0.0.0.0 --port 80
+```
+
+### Run Tests
+
+```bash
+pytest tests/
 ```
 
 ### Run with Docker
 
 ```bash
-docker build -f Dockerfile.txt -t hiveship .
+docker build -f docker/Dockerfile -t hiveship .
 docker run -p 80:80 --env-file .env hiveship
+```
+
+### Docker Compose (app + dashboard)
+
+```bash
+docker compose -f docker/docker-compose.yml up
 ```
 
 ### Deploy to Azure Container Apps
@@ -261,40 +385,58 @@ Open `http://localhost:8050`. The dashboard shows:
 
 ## Dev-Test Mode (No API Key Required)
 
-`dashboard/dev_test.py` provides a file-based testing bridge that lets you (or an AI assistant like Copilot) drive the LLM responses manually — no API key needed.
+`client/copilot_bridge.py` provides a file-based testing bridge that lets you (or an AI assistant like Copilot) drive the LLM responses manually — no Gemini/OpenAI API key needed. Only `GITHUB_TOKEN` is required (for cloning and PR creation).
 
 ```bash
-python dashboard/dev_test.py "your goal text"
-python dashboard/dev_test.py                    # uses a default goal
+python client/copilot_bridge.py "your goal text"
+python client/copilot_bridge.py                  # uses default goal (or DEV_TEST_GOAL env var)
 ```
 
 How it works:
-1. Starts a mock LLM server, HiveShip, and the dashboard locally.
-2. Triggers a generation job.
-3. Each time HiveShip needs an LLM response, the mock server writes `current_prompt.json`.
-4. You (or Copilot) read the prompt, craft a response, and write `current_response.json`.
-5. The pipeline continues with your response.
-6. After the PR is created, the script polls GitHub for review comments and can trigger revision jobs the same way.
+1. Starts a mock LLM server (port 11435), HiveShip (port 80), and the dashboard (port 8050).
+2. Triggers a generation job with the given goal.
+3. Each time HiveShip needs an LLM response, the mock server blocks. The script polls for the pending prompt and writes it to `client/logs/current_prompt.json`.
+4. You (or Copilot) read the prompt, craft a response, and write `client/logs/current_response.json`.
+5. The script reads the response file and posts it to the mock LLM, which unblocks HiveShip.
+6. After the PR is created, the script polls GitHub for PR comments (3-minute window) and automatically triggers revision jobs the same way.
 
-This is useful for understanding the pipeline, debugging agent behaviour, or testing without burning API credits.
+The full learning-loop pipeline runs in dev-test mode: memory prefetch, skill discovery, history search, and post-PR extraction. Copilot will see memory/skill context in the prompts when available.
+
+Configuration via environment variables (set in `.env` at the repo root):
+- `REPO_OWNER` / `REPO_NAME` — **required** target repository (set in `.env` or pass per-request)
+- `GITHUB_TOKEN` — **required** for cloning and PR creation
+- `DEV_TEST_GOAL` — override the default goal text
+
+There is also a simpler launcher (`client/dev_launch.py`) that starts the servers and triggers the job but does not run the file-bridge loop — useful for manual testing via HTTP.
 
 ---
 
 ## Configuration Reference
 
+All configuration is done via the **`.env` file** at the repo root (see `.env.example` for a template). Environment variables are loaded at startup by `hiveship.config`. For containerized deployments, pass them via `--env-file .env` or your orchestrator's secrets manager.
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GITHUB_TOKEN` | *required* | GitHub PAT with repo access |
 | `WEBHOOK_SECRET` | *required* | HMAC secret for webhook verification |
+| `REPO_OWNER` | *required* | GitHub owner or org for the target repo |
+| `REPO_NAME` | *required* | GitHub repository name |
 | `GEMINI_API_KEY` | — | Google Gemini API key |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
 | `OLLAMA_API_KEY` | — | API key for remote Ollama/OpenAI-compat endpoints |
 | `OLLAMA_MODEL` | `llama3` | Model name for Ollama |
 | `DEFAULT_LLM_PROVIDER` | `gemini` | `"gemini"` or `"ollama"` |
 | `BASE_BRANCH` | `develop` | Target branch for generated PRs |
-| `BOT_USERNAME` | `kushal-sharma-24` | GitHub username to detect self-loop |
+| `BOT_USERNAME` | — | GitHub username to detect self-loop |
 | `BASE_WORKSPACE` | `/app/workspace` | Working directory for repo clones |
 | `MAX_REVIEW_CYCLES` | `2` | Maximum self-review iterations (0–5) |
+| `COMPRESSION_TARGET` | `30000` | Char threshold before trajectory compression triggers |
+| `AGENT_OUTPUT_CAP` | `12000` | Max chars per agent output |
+| `DAG_TURN_BUDGET` | `200000` | Total char budget for the DAG execution |
+| `LLM_MAX_RETRIES` | `3` | Max retries per LLM call (with jittered backoff) |
+| `LLM_FALLBACK_ENABLED` | `true` | Whether to fallback to alternate provider on failure |
+
+> **Multi-repo support:** `REPO_OWNER` and `REPO_NAME` in `.env` set the defaults. You can override them per-request by including `repo_owner` and `repo_name` in the `/teams-trigger` JSON body. This allows targeting repos from any owner or org. Your `GITHUB_TOKEN` must have access to all target repos.
 
 ### Pipeline Limits
 
@@ -305,6 +447,8 @@ This is useful for understanding the pipeline, debugging agent behaviour, or tes
 | `ARTIFACT_CHAR_LIMIT` | 12,000 | Max chars per artifact read |
 | `READ_BUDGET` | 30,000 | Total char budget for file reads per agent |
 | `MAX_READ_FILES` | 10 | Max repo files an agent can read |
+| `MEMORY_CHAR_LIMIT` | 3,000 | Max chars in persistent memory store |
+| `SKILL_CONTENT_BUDGET` | 5,000 | Max chars of skill content injected per agent |
 
 ---
 
@@ -334,7 +478,7 @@ PENDING → RUNNING → COMPLETED
                   → PRUNED (cascaded from upstream failure)
 ```
 
-Failures are classified into 12 typed modes (`FailureClass`), each mapped to a recovery recipe:
+Failures are classified into 20+ typed modes (`FailureClass`), each mapped to a `RecoveryHint` with `retryable`, `should_compress`, and `should_fallback` flags:
 
 | Failure | Recovery |
 |---------|----------|
@@ -342,8 +486,15 @@ Failures are classified into 12 typed modes (`FailureClass`), each mapped to a r
 | `cross_ref_broken` | Validate and fix |
 | `review_rejected` | Corrective prompt |
 | `agent_blocked` | Spawn helper |
-| `llm_timeout` | Retry with repair |
-| `context_overflow` | Reduce context and retry |
+| `llm_timeout` | Retry with jittered backoff |
+| `context_overflow` | Compress context and retry |
+| `rate_limit` | Retry with exponential backoff |
+| `billing` | Fallback to alternate provider |
+| `auth` / `auth_permanent` | Fail fast (no retry) |
+| `overloaded` | Retry with backoff |
+| `payload_too_large` | Compress and retry |
+| `provider_policy_blocked` | Fallback to alternate provider |
+| `llm_blocked` | Retry with rephrased prompt |
 | `dag_stalled` | Escalate |
 
 ---

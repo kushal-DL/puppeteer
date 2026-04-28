@@ -35,13 +35,10 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
+          dockerfilePath: docker/Dockerfile
           registryUrl: acragentpoc67.azurecr.io
           registryUsername: ${{ secrets.PIPELINEORCHESTRATOR_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.PIPELINEORCHESTRATOR_REGISTRY_PASSWORD }}
           containerAppName: pipeline-orchestrator
           resourceGroup: rg-agent-poc
           imageToBuild: acragentpoc67.azurecr.io/pipeline-orchestrator:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
