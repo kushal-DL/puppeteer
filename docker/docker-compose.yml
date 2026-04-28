@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "80:80"
+    env_file:
+      - ../.env
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: ["python", "-m", "dashboard.serve"]
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - app

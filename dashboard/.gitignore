@@ -1,0 +1,5 @@
+# Dashboard runtime files
+dashboard/telemetry.jsonl
+dashboard/cache.jsonl
+dashboard/hiveship_obs.db
+dashboard/logs/

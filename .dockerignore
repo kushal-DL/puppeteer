@@ -1,0 +1,24 @@
+.github/
+.git/
+.gitignore
+.env
+.env.example
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Not needed in container image
+auto-sdlc.code-workspace
+docker/
+docs/
+tests/
+client/
+dashboard/
+legacy/
+sandbox/
+business-case/
+references/
+*.ipynb
+*.md
+!src/**/README.md
