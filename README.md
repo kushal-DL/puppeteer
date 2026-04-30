@@ -1,6 +1,6 @@
 # HiveShip
 
-An autonomous SDLC orchestrator that transforms plain-English goals into fully executed, PR-delivered codebase changes — with zero human intervention. Unlike stateless coding assistants, HiveShip **learns from every run**: it accumulates repository knowledge, indexes past jobs, and codifies reusable procedures — so the 50th PR against a repo is measurably better and cheaper than the 1st.
+An autonomous self-learning code synthesis platform that transforms plain-English goals into fully executed, PR-delivered codebase changes — with zero human intervention. Unlike stateless coding assistants, HiveShip **learns from every run**: it accumulates repository knowledge, indexes past jobs, and codifies reusable procedures — so the 50th PR against a repo is measurably better and cheaper than the 1st.
 
 ```
 Developer           HiveShip                         GitHub
@@ -14,8 +14,8 @@ Developer           HiveShip                         GitHub
    │                   │  5. Ship   ─────────────────► PR
    │                   │  6. Learn  (extract facts)     │
    │                   │                                │
-   │  "@sdlc-bot fix"  │◄─────── webhook ──────────────┤
-   │                   │  7. Investigate + fix ────────► Push
+   │  "@hiveship fix"  │◄──────── webhook ──────────────┤
+   │                   │  7. Investigate + fix ───────► Push
 ```
 
 ---
